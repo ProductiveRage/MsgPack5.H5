@@ -10,6 +10,8 @@ namespace MsgPack5.Bridge
         private readonly Func<sbyte, Decoder> _customDecoderLookup;
         public MsgPack5Decoder(Func<sbyte, Decoder> customDecoderLookup = null) => _customDecoderLookup = customDecoderLookup;
 
+        public object Decode(byte[] data) => Decode(new DefaultBuffer(data ?? throw new ArgumentNullException(nameof(data))));
+
         public object Decode(IBuffer buf)
         {
             var result = TryDecode(buf, 0);
