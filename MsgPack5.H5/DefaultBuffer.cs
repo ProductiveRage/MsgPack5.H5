@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace MsgPack5.Bridge
+namespace MsgPack5.H5
 {
     public sealed class DefaultBuffer : IBuffer
     {

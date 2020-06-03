@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MsgPack5.Bridge
+namespace MsgPack5.H5
 {
     internal sealed class ArrayDataDecoder
     {
