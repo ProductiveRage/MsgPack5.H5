@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
+    <AssemblyName>Tester</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,7 +12,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MsgPack5.Bridge\MsgPack5.Bridge.csproj" />
+    <ProjectReference Include="..\MsgPack5.H5\MsgPack5.H5.csproj" />
   </ItemGroup>
+
+  <Import Project="..\Tests\SharedTypes\SharedTypes.projitems" Label="Shared" />
 
 </Project>

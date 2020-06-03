@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using MessagePack;
-using MsgPack5.Bridge;
+using MsgPack5.H5;
+using MsgPack5.H5.Tests.SharedTypes;
 using Newtonsoft.Json;
 
 namespace Tester
@@ -17,7 +17,8 @@ namespace Tester
             InterfaceTests();
             Console.WriteLine();
 
-            Console.WriteLine("Done! Press [Enter] to terminate..");
+            Console.WriteLine("Done!");
+            Console.WriteLine("Press [Enter] to terminate.");
             Console.ReadLine();
         }
 
@@ -65,79 +66,5 @@ namespace Tester
         }
 
         private static string ToDetailedJsonRepresentation(object value) => (value is null) ? "{null}" : JsonConvert.SerializeObject(value, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All });
-    }
-
-    [MessagePack.MessagePackObject]
-    [MsgPack5.Bridge.MessagePackObject]
-    public class SomethingWithKeyAndID
-    {
-        [MessagePack.Key(0)]
-        [MsgPack5.Bridge.Key(0)]
-        public int Key { get; set; }
-
-        [MessagePack.Key(1)]
-        [MsgPack5.Bridge.Key(1)]
-        public string ID { get; set; }
-    }
-
-    [MessagePack.MessagePackObject]
-    [MsgPack5.Bridge.MessagePackObject]
-    public sealed class Wrapper
-    {
-        [MessagePack.Key(0)]
-        [MsgPack5.Bridge.Key(0)]
-        public IThing[] Things { get; set; }
-    }
-
-    [MessagePack.Union(0, typeof(Thing0))]
-    [MessagePack.Union(1, typeof(Thing1))]
-    [MessagePack.Union(2, typeof(Thing2))]
-    [MsgPack5.Bridge.Union(0, typeof(Thing0))]
-    [MsgPack5.Bridge.Union(1, typeof(Thing1))]
-    [MsgPack5.Bridge.Union(2, typeof(Thing2))]
-    public interface IThing { }
-
-    [MessagePack.MessagePackObject]
-    [MsgPack5.Bridge.MessagePackObject]
-    public sealed class Thing0 : IThing
-    {
-        [MessagePack.Key(0)]
-        [MsgPack5.Bridge.Key(0)]
-        public string Name { get; set; }
-
-        [MessagePack.Key(1)]
-        [MsgPack5.Bridge.Key(1)]
-        public int Age { get; set; }
-    }
-
-    [MessagePack.MessagePackObject]
-    [MsgPack5.Bridge.MessagePackObject]
-    public sealed class Thing1 : IThing
-    {
-        [MessagePack.Key(0)]
-        [MsgPack5.Bridge.Key(0)]
-        public string[] Roles { get; set; }
-
-        [MessagePack.Key(1)]
-        [MsgPack5.Bridge.Key(1)]
-        public int[] IDs { get; set; }
-    }
-
-    [MessagePack.MessagePackObject]
-    [MsgPack5.Bridge.MessagePackObject]
-    public sealed class Thing2 : IThing
-    {
-        [MessagePack.Key(0)]
-        [MsgPack5.Bridge.Key(0)]
-        public DayOfWeek Day { get; set; }
-    }
-
-    [MessagePack.MessagePackObject]
-    [MsgPack5.Bridge.MessagePackObject]
-    public sealed class ClassWithDictionary
-    {
-        [MessagePack.Key(0)]
-        [MsgPack5.Bridge.Key(0)]
-        public Dictionary<string, int> Info { get; set; }
     }
 }
