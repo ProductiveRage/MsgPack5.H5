@@ -1,28 +1,36 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using MsgPack5.Bridge.Internal;
 
 namespace MsgPack5.Bridge
 {
     public sealed class MsgPack5Decoder
     {
-        public delegate object Decoder(IBuffer buffer);
+        public delegate object Decoder(IBuffer buffer, Type expectedType);
+
+        public static MsgPack5Decoder Default { get; } = new MsgPack5Decoder();
 
         private readonly Func<sbyte, Decoder> _customDecoderLookup;
         public MsgPack5Decoder(Func<sbyte, Decoder> customDecoderLookup = null) => _customDecoderLookup = customDecoderLookup;
 
-        public object Decode(byte[] data) => Decode(new DefaultBuffer(data ?? throw new ArgumentNullException(nameof(data))));
+        public T Decode<T>(byte[] data) => Decode<T>(new DefaultBuffer(data ?? throw new ArgumentNullException(nameof(data))));
 
-        public object Decode(IBuffer buf)
+        public T Decode<T>(IBuffer buf)
         {
-            var result = TryDecode(buf, 0);
+            var result = TryDecode(buf, 0, typeof(T));
             if (result.NumberOfBytesConsumed == 0)
                 throw new IncompleteBufferError();
 
+            var typedResult = (T)result.Value;
             buf.Consume(result.NumberOfBytesConsumed);
-            return result.Value;
+            return typedResult;
         }
 
-        private DecodeResult TryDecode(IBuffer buf, ulong initialOffset)
+        // TODO: Document the difference in scenarios between throwing an exception and returning DecodeResult.Failed
+        private DecodeResult TryDecode(IBuffer buf, ulong initialOffset, Type expectedType)
         {
             if (buf.Length < initialOffset)
                 return DecodeResult.Failed;
@@ -37,6 +45,28 @@ namespace MsgPack5.Bridge
             if (bufLength < size)
                 return DecodeResult.Failed;
 
+            // This may be a [Union] attribute - if so then it will will have a key that we'll use to map back to the type via [Union] attributes on this side. Note that an 0x92 value might NOT be related to a [Union], it may also be
+            // an array with less than 15 elements, which is handled further down
+            if ((first == 0x92) && (bufLength > 1))
+            {
+                var typeIndex = buf.ReadUInt8(offset);
+
+                // TODO: Cache this lookup?
+                var unionAttribute = expectedType.GetCustomAttributes<UnionAttribute>().FirstOrDefault(union => union.Key == typeIndex);
+                if (unionAttribute is object)
+                {
+                    if (unionAttribute.SubType is null)
+                        throw new InvalidOperationException($"Union type index {typeIndex} has null {nameof(unionAttribute.SubType)} specified");
+
+                    offset += 1; // we've accounted for the reading of the "first" byte but we need to account for the "typeIndex" read since we've used it here (if we haven't, let its value be read again after this conditional)
+                    var decodeResult = TryDecode(buf, offset, unionAttribute.SubType);
+                    return new DecodeResult(
+                        decodeResult.Value,
+                        decodeResult.NumberOfBytesConsumed + 2 // account for the extra two bytes that we read while ascertaining what type (from the [Union] attribute) this needed to be
+                    );
+                }
+            }
+
             if (first < 0x80) // 7-bits positive int
                 return new DecodeResult(first, 1);
 
@@ -44,14 +74,14 @@ namespace MsgPack5.Bridge
             {
                 var length = (uint)(first & 0x0f);
                 var headerSize = offset - initialOffset;
-                return DecodeMap(buf, offset, length, headerSize);
+                return DecodeMap(buf, offset, length, headerSize, expectedType);
             }
 
             if ((first & 0xf0) == 0x90) // we have an array with less than 15 elements
             {
                 var length = (uint)(first & 0x0f);
                 var headerSize = offset - initialOffset;
-                return DecodeArray(buf, offset, length, headerSize);
+                return DecodeArray(buf, offset, length, headerSize, expectedType);
             }
 
             if ((first & 0xe0) == 0xa0) // fixstr up to 31 bytes
@@ -77,13 +107,11 @@ namespace MsgPack5.Bridge
             {
                 var length = buf.ReadUIntBE(offset, size - 2);
                 offset += size - 2;
-
                 var type = buf.ReadInt8(offset);
                 offset += 1;
-
                 if (!IsValidDataSize(length, bufLength, size))
                     return DecodeResult.Failed;
-                return DecodeExt(buf, offset, type, length, size);
+                return DecodeExt(buf, offset, type, length, size, expectedType);
             }
             if (inRange(0xca, 0xcb))
                 return DecodeFloat(buf, offset, size - 1);
@@ -95,7 +123,7 @@ namespace MsgPack5.Bridge
             {
                 var type = buf.ReadInt8(offset); // Signed
                 offset += 1;
-                return DecodeExt(buf, offset, type, size - 2, 2);
+                return DecodeExt(buf, offset, type, size - 2, 2, expectedType);
             }
             if (inRange(0xd9, 0xdb)) // str8/16/32
             {
@@ -110,7 +138,7 @@ namespace MsgPack5.Bridge
             {
                 var length = buf.ReadUIntBE(offset, size - 1);
                 offset += size - 1;
-                return DecodeArray(buf, offset, length, size);
+                return DecodeArray(buf, offset, length, size, expectedType);
             }
             if (inRange(0xde, 0xdf)) // map16/32
             {
@@ -121,12 +149,12 @@ namespace MsgPack5.Bridge
                         // maps up to 2^16 elements - 2 bytes
                         length = buf.ReadUInt16BE(offset);
                         offset += 2;
-                        return DecodeMap(buf, offset, length, 3);
+                        return DecodeMap(buf, offset, length, 3, expectedType);
 
                     case 0xdf:
                         length = buf.ReadUInt32BE(offset);
                         offset += 4;
-                        return DecodeMap(buf, offset, length, 5);
+                        return DecodeMap(buf, offset, length, 5, expectedType);
                 }
             }
             if (first >= 0xe0) // 5 bits negative ints
@@ -198,52 +226,77 @@ namespace MsgPack5.Bridge
             throw new InvalidOperationException("Invalid size for reading floating point number: " + size);
         }
 
-        private DecodeResult DecodeArray(IBuffer buf, ulong initialOffset, ulong length, ulong headerLength)
+        private DecodeResult DecodeArray(IBuffer buf, ulong initialOffset, ulong length, ulong headerLength, Type expectedType)
         {
-            var (result, numberOfBytesConsumed) = DecodeArrayInternal(buf, initialOffset, length, headerLength);
-            return new DecodeResult(result, numberOfBytesConsumed);
+            var decoder = ArrayDataDecoderRetriever.TryToGetFor(expectedType, length);
+            if (decoder == null)
+                throw new Exception("Unable to deserialise to type: " + expectedType);
+
+            var numberOfBytesConsumed = DecodeArrayInternal(buf, initialOffset, length, headerLength, decoder.GetExpectedTypeForIndex, decoder.SetValueAtIndex);
+            return new DecodeResult(decoder.GetFinalResult(), numberOfBytesConsumed);
         }
 
-        private (object[] result, ulong numberOfBytesConsumed) DecodeArrayInternal(IBuffer buf, ulong initialOffset, ulong length, ulong headerLength)
+        /// <summary>
+        /// This will return the number of bytes consumed
+        /// </summary>
+        private ulong DecodeArrayInternal(IBuffer buf, ulong initialOffset, ulong length, ulong headerLength, Func<ulong, Type> expectedTypeForIndex, Action<ulong, object> setterForIndex)
         {
             var offset = initialOffset;
-            var result = new object[length];
             for (ulong i = 0; i < length; i++)
             {
-                var decodeResult = TryDecode(buf, offset);
+                var expectedType = expectedTypeForIndex(i);
+                if (expectedType == null)
+                    throw new Exception("DecodeArrayInternal received expectedTypeForIndex delegate that returned null for index " + i);
+                var decodeResult = TryDecode(buf, offset, expectedType);
                 if (decodeResult.NumberOfBytesConsumed == 0)
-                    return (null, 0);
-                result[i] = decodeResult.Value;
+                    return 0;
+                setterForIndex(i, decodeResult.Value);
                 offset += decodeResult.NumberOfBytesConsumed;
             }
-            return (result, headerLength + offset - initialOffset);
+            return headerLength + offset - initialOffset;
         }
 
-        private DecodeResult DecodeMap(IBuffer buf, ulong offset, ulong length, ulong headerLength)
+        private DecodeResult DecodeMap(IBuffer buf, ulong initialOffset, ulong length, ulong headerLength, Type expectedType)
         {
-            var temp = DecodeArrayInternal(buf, offset, 2 * length, headerLength);
-            if (temp.numberOfBytesConsumed == 0)
-                return DecodeResult.Failed;
-
-            var result = temp.result;
-            var consumedBytes = temp.numberOfBytesConsumed;
-            var mapping = new Dictionary<object, object>();
-            for (ulong i = 0; i < 2 * length; i += 2)
+            var dictionaryType = expectedType;
+            while (!dictionaryType.IsGenericType || (dictionaryType.GetGenericTypeDefinition() != typeof(Dictionary<,>)))
             {
-                var key = result[i];
-                var val = result[i + 1];
-                mapping[key] = mapping[val];
+                dictionaryType = dictionaryType.BaseType;
+                if (dictionaryType == null)
+                    throw new Exception("Unable to deserialise to type: " + expectedType); // TODO: What's the difference between throwing an exception for a failure and returning DecodeResult.Failed when we run out of data?
             }
-            return new DecodeResult(mapping, consumedBytes);
+
+            var dictionaryTypeArgs = dictionaryType.GetGenericArguments();
+            var keyType = dictionaryTypeArgs[0];
+            var valueType = dictionaryTypeArgs[1];
+            var dictionary = (IDictionary)Activator.CreateInstance(dictionaryType);
+            var offset = initialOffset;
+            for (ulong i = 0; i < length; i++)
+            {
+                var decodeKeyResult = TryDecode(buf, offset, keyType);
+                if (decodeKeyResult.NumberOfBytesConsumed == 0)
+                    return DecodeResult.Failed;
+                offset += decodeKeyResult.NumberOfBytesConsumed;
+
+                var decodeValueResult = TryDecode(buf, offset, valueType);
+                if (decodeValueResult.NumberOfBytesConsumed == 0)
+                    return DecodeResult.Failed;
+                offset += decodeValueResult.NumberOfBytesConsumed;
+
+                // Even though the key and value types will be correct, they will be wrapped in a DecodeResult instance where the Value property is an object and the non-generic IDictionary.Add method will be upset if the
+                // reference types are passed (ie. the object from DecodeResult) where a value type is expected (eg. an Int32 key on the dictionary)
+                dictionary.Add(Convert.ChangeType(decodeKeyResult.Value, keyType), Convert.ChangeType(decodeValueResult.Value, valueType));
+            }
+            return new DecodeResult(dictionary, headerLength + offset - initialOffset);
         }
 
-        private DecodeResult DecodeExt(IBuffer buf, ulong offset, sbyte type, ulong size, ulong headerLength)
+        private DecodeResult DecodeExt(IBuffer buf, ulong offset, sbyte typeCode, ulong size, ulong headerLength, Type expectedType)
         {
-            var decoder = _customDecoderLookup?.Invoke(type);
+            var decoder = _customDecoderLookup?.Invoke(typeCode);
             if (decoder == null)
-                throw new InvalidOperationException("Unable to find ext type " + type);
+                throw new InvalidOperationException("Unable to find ext type " + typeCode);
 
-            var value = decoder(buf.SliceAsBuffer(offset, offset + size));
+            var value = decoder(buf.SliceAsBuffer(offset, offset + size), expectedType);
             return new DecodeResult(value, headerLength + size);
         }
 
