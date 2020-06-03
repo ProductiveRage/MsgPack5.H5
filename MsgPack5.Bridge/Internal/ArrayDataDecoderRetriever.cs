@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace MsgPack5.Bridge.Internal
+namespace MsgPack5.Bridge
 {
     internal static class ArrayDataDecoderRetriever
     {
