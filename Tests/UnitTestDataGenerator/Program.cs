@@ -38,7 +38,7 @@ namespace MsgPack5.H5.Tests.UnitTestDataGenerator
                 var serialised = MessagePackSerializer.Serialize(type: testItem.DeserialiseAs, obj: testItem.Value);
                 testItemEntries.Add((
                     "\"" + testItem.GetType().FullName + "\"",
-                    "new byte[] { " + string.Join(", ", serialised) + "}"
+                    "new byte[] { " + string.Join(", ", serialised) + " }"
                 ));
             }
 

@@ -16,17 +16,32 @@ namespace MsgPack5.H5
         public MsgPack5Decoder(Func<sbyte, Decoder> customDecoderLookup = null) => _customDecoderLookup = customDecoderLookup;
 
         public T Decode<T>(byte[] data) => Decode<T>(new DefaultBuffer(data ?? throw new ArgumentNullException(nameof(data))));
-        public object Decode(byte[] data, Type deserialiseAs) => Decode(new DefaultBuffer(data ?? throw new ArgumentNullException(nameof(data))), deserialiseAs);
 
-        public T Decode<T>(IBuffer buf) => (T)Decode(buf, typeof(T));
-        public object Decode(IBuffer buf, Type deserialiseAs)
+        public T Decode<T>(IBuffer buf)
         {
-            var result = TryDecode(buf, 0, deserialiseAs);
+            var result = TryDecode(buf, 0, typeof(T));
             if (result.NumberOfBytesConsumed == 0)
                 throw new IncompleteBufferError();
 
             buf.Consume(result.NumberOfBytesConsumed);
-            return result.Value;
+            return TryToCast<T>(result.Value);
+        }
+
+        private static T TryToCast<T>(object value)
+        {
+            // If the value is null then there's not much we can hopefully - hopefully it's a reference type (which will be fine) or it's a value type with an operator that can handle null (if not, it's correct to fail)
+            if (value is null)
+            {
+                // TODO: More specific error if the cast fails?
+                return (T)value;
+            }
+
+            // If the value is directly assignable then we don't need to do anything other than cast it directly
+            if (typeof(T).IsAssignableFrom(value.GetType()))
+                return (T)value;
+
+            // Try this - it will cover the cases of where a byte value was read (because it was a small number) but an int was expected
+            return (T)Convert.ChangeType(value, typeof(T));
         }
 
         // TODO: Document the difference in scenarios between throwing an exception and returning DecodeResult.Failed
