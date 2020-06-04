@@ -1,13 +1,13 @@
 ﻿#if H5
-using H5 = MsgPack5.H5;
+using MsgPack5.H5;
 #else
-using NET = MessagePack;
+using MessagePack;
 #endif
 
-namespace MsgPack5.H5.Tests.SharedTypes
+namespace SharedTypes
 {
     [MessagePackObject]
-    public sealed class Wrapper
+    public sealed class Wrapper // Note: Must be public (not internal) to work with MessagePack
     {
         [Key(0)]
         public IThing[] Things { get; set; }

@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>MsgPack5.H5.Tests.UnitTests</AssemblyName>
+    <RootNamespace>MsgPack5.H5.Tests.UnitTests</RootNamespace>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;H5</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>H5</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\UnitTestDataGenerator\TestData.cs" Link="TestData.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="CompareNETObjects" Version="4.66.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\MsgPack5.H5\MsgPack5.H5.csproj" />
+  </ItemGroup>
+
+  <Import Project="..\SharedTypes\SharedTypes.projitems" Label="Shared" />
+
+  <Import Project="..\SharedTestItems\SharedTestItems.projitems" Label="Shared" />
+
+</Project>

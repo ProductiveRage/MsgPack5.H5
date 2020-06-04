@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "UnitTestDataGenerator": {
+      "commandName": "Project",
+      "commandLineArgs": "$(ProjectDir)"
+    }
+  }
+}

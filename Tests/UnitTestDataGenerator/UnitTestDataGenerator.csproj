@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <Import Project="..\SharedTypes\SharedTypes.projitems" Label="Shared" />
+
+  <Import Project="..\SharedTestItems\SharedTestItems.projitems" Label="Shared" />
+
+  <ItemGroup>
+    <!-- 2020-06-04 DWR: This is the file that we build using this project that we then link into the UnitTests project in order for it to do its thing based upon .NET-serialised content from here -->
+    <Compile Remove="TestData.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MessagePack" Version="2.1.115" />
+  </ItemGroup>
+
+</Project>
