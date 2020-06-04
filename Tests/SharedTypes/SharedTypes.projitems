@@ -17,7 +17,4 @@
     <Compile Include="$(MSBuildThisFileDirectory)Thing2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Thing1.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="$(MSBuildThisFileDirectory)# ReadMe.txt" />
-  </ItemGroup>
 </Project>
