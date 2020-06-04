@@ -16,16 +16,17 @@ namespace MsgPack5.H5
         public MsgPack5Decoder(Func<sbyte, Decoder> customDecoderLookup = null) => _customDecoderLookup = customDecoderLookup;
 
         public T Decode<T>(byte[] data) => Decode<T>(new DefaultBuffer(data ?? throw new ArgumentNullException(nameof(data))));
+        public object Decode(byte[] data, Type deserialiseAs) => Decode(new DefaultBuffer(data ?? throw new ArgumentNullException(nameof(data))), deserialiseAs);
 
-        public T Decode<T>(IBuffer buf)
+        public T Decode<T>(IBuffer buf) => (T)Decode(buf, typeof(T));
+        public object Decode(IBuffer buf, Type deserialiseAs)
         {
-            var result = TryDecode(buf, 0, typeof(T));
+            var result = TryDecode(buf, 0, deserialiseAs);
             if (result.NumberOfBytesConsumed == 0)
                 throw new IncompleteBufferError();
 
-            var typedResult = (T)result.Value;
             buf.Consume(result.NumberOfBytesConsumed);
-            return typedResult;
+            return result.Value;
         }
 
         // TODO: Document the difference in scenarios between throwing an exception and returning DecodeResult.Failed
