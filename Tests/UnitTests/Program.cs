@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using SharedTestItems;
+using MsgPack5.H5.Tests.SharedTestItems;
 
 namespace MsgPack5.H5.Tests.UnitTests
 {

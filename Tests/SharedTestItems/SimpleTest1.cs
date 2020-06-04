@@ -1,7 +1,7 @@
 ﻿using System;
 using MsgPack5.H5.Tests.SharedTypes;
 
-namespace SharedTestItems
+namespace MsgPack5.H5.Tests.SharedTestItems
 {
     internal sealed class SimpleTest1 : ITestItem
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SharedTestItems
+namespace MsgPack5.H5.Tests.SharedTestItems
 {
     internal static class TestItemInstanceCreator
     {

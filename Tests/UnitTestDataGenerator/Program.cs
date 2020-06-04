@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using MessagePack;
-using SharedTestItems;
+using MsgPack5.H5.Tests.SharedTestItems;
 
-namespace UnitTestDataGenerator
+namespace MsgPack5.H5.Tests.UnitTestDataGenerator
 {
     internal sealed class Program
     {
