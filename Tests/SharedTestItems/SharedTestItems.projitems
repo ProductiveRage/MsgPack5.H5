@@ -9,10 +9,18 @@
     <Import_RootNamespace>MsgPack5.H5.Tests.SharedTestItems</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)SimpleTest3.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestThing0.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestThing1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestThing2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestThingWrapperAsConcrete.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestThing2AsInterface.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestThing2AsConcrete.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestThing1AsInterface.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestThing1AsConcrete.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestThing0AsConcrete.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestThing0AsInterface.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestItemInstanceCreator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ITestItem.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SimpleTest2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SimpleTest1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestSomethingWithKeyAndID.cs" />
   </ItemGroup>
 </Project>

@@ -12,7 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SomethingWithKeyAndID.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IThing.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Thing0.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Wrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ThingWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Thing2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Thing1.cs" />
