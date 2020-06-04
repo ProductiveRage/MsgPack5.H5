@@ -1,10 +1,8 @@
-﻿#if H5
-using MsgPack5.H5;
-#else
+﻿#if !H5
 using MessagePack;
 #endif
 
-namespace SharedTypes
+namespace MsgPack5.H5.Tests.SharedTypes
 {
     [MessagePackObject]
     public sealed class Thing1 : IThing // Note: Must be public (not internal) to work with MessagePack

@@ -1,5 +1,5 @@
 ﻿using System;
-using SharedTypes;
+using MsgPack5.H5.Tests.SharedTypes;
 
 namespace SharedTestItems
 {
