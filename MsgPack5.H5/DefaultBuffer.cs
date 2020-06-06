@@ -35,19 +35,15 @@ namespace MsgPack5.H5
             _position += numberOfBytes;
         }
 
-        public byte[] Slice(uint start, uint end)
+        public byte[] Slice(uint start, uint size)
         {
-            if (end < start)
-                throw new ArgumentOutOfRangeException(nameof(end), "can't be smaller than " + nameof(start));
-
-            var length = end - start;
-            CheckPosition(numberOfBytesRequired: length);
-            var slice = new byte[length];
-            Array.Copy(src: _data, spos: start + _position, dst: slice, dpos: 0, len: length);
+            CheckPosition(numberOfBytesRequired: size);
+            var slice = new byte[size];
+            Array.Copy(src: _data, spos: start + _position, dst: slice, dpos: 0, len: size);
             return slice;
         }
 
-        public IBuffer SliceAsBuffer(uint start, uint end) => new DefaultBuffer(Slice(start, end));
+        public IBuffer SliceAsBuffer(uint start, uint size) => new DefaultBuffer(Slice(start, size));
 
         public sbyte ReadInt8(uint offset)
         {
@@ -75,7 +71,7 @@ namespace MsgPack5.H5
 
         public float ReadFloatBE(uint offset)
         {
-            var bytes = Slice(offset, offset + 4);
+            var bytes = Slice(offset, size: 4);
             if (BitConverter.IsLittleEndian)
             {
                 var b0 = bytes[0];
@@ -90,7 +86,7 @@ namespace MsgPack5.H5
 
         public double ReadDoubleBE(uint offset)
         {
-            var bytes = Slice(offset, offset + 8);
+            var bytes = Slice(offset, size: 8);
             if (BitConverter.IsLittleEndian)
             {
                 var b0 = bytes[0];
@@ -120,7 +116,7 @@ namespace MsgPack5.H5
             throw new InvalidOperationException("Invalid UIntBE size (only support 1, 2, 4): " + size);
         }
 
-        public string ReadUTF8String(uint start, uint end) => Encoding.UTF8.GetString(Slice(start, end));
+        public string ReadUTF8String(uint start, uint size) => Encoding.UTF8.GetString(Slice(start, size));
 
         private void CheckPosition(uint numberOfBytesRequired)
         {

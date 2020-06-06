@@ -103,7 +103,7 @@ namespace MsgPack5.H5
                 var length = (uint)(first & 0x1f);
                 if (!IsValidDataSize(length, bufLength, 1))
                     return DecodeResult.Failed;
-                var result = buf.ReadUTF8String(offset, offset + length);
+                var result = buf.ReadUTF8String(offset, length);
                 return new DecodeResult(result, length + 1);
             }
             if (inRange(0xc0, 0xc3))
@@ -114,7 +114,7 @@ namespace MsgPack5.H5
                 offset += size - 1;
                 if (!IsValidDataSize(length, bufLength, size))
                     return DecodeResult.Failed;
-                var result = buf.Slice(offset, offset + length);
+                var result = buf.Slice(offset, length);
                 return new DecodeResult(result, size + length);
             }
             if (inRange(0xc7, 0xc9)) // ext8/16/32
@@ -145,7 +145,7 @@ namespace MsgPack5.H5
                 offset += size - 1;
                 if (!IsValidDataSize(length, bufLength, size))
                     return DecodeResult.Failed;
-                var result = buf.ReadUTF8String(offset, offset + length);
+                var result = buf.ReadUTF8String(offset, length);
                 return new DecodeResult(result, size + length);
             }
             if (inRange(0xdc, 0xdd)) // array16/32
@@ -198,7 +198,7 @@ namespace MsgPack5.H5
             if (size == 4)
                 return new DecodeResult(buf.ReadInt32BE(offset), size + 1);
             if (size == 8)
-                return new DecodeResult(ReadInt64BE(buf.SliceAsBuffer(offset, offset + 8), 0), size + 1);
+                return new DecodeResult(ReadInt64BE(buf.SliceAsBuffer(offset, size: 8), 0), size + 1);
             throw new InvalidOperationException("Invalid size for reading signed integer: " + size);
         }
 
@@ -207,6 +207,12 @@ namespace MsgPack5.H5
             var negate = (buf[offset] & 0x80) == 0x80;
             if (negate)
             {
+                //var bufferSliceToConsider = buf.Slice(
+
+
+
+
+
                 var carry = 1;
                 for (var i = offset + 7; i >= offset; i--)
                 {
@@ -310,7 +316,7 @@ namespace MsgPack5.H5
             if (decoder == null)
                 throw new InvalidOperationException("Unable to find ext type " + typeCode);
 
-            var value = decoder(buf.SliceAsBuffer(offset, offset + size), expectedType);
+            var value = decoder(buf.SliceAsBuffer(offset, size), expectedType);
             return new DecodeResult(value, headerLength + size);
         }
 

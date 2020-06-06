@@ -8,8 +8,8 @@
 
         void Consume(uint numberOfBytes);
 
-        byte[] Slice(uint start, uint end);
-        IBuffer SliceAsBuffer(uint start, uint end);
+        byte[] Slice(uint start, uint size);
+        IBuffer SliceAsBuffer(uint start, uint size);
 
         sbyte ReadInt8(uint offset);
         byte ReadUInt8(uint offset);
@@ -22,6 +22,6 @@
 
         uint ReadUIntBE(uint offset, uint size);
 
-        string ReadUTF8String(uint start, uint end);
+        string ReadUTF8String(uint start, uint size);
     }
 }
