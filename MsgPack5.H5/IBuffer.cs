@@ -4,7 +4,7 @@
     {
         uint Length { get; }
 
-        byte this[uint offset] { get; set; }
+        byte this[uint offset] { get; }
 
         void Consume(uint numberOfBytes);
 

@@ -14,7 +14,7 @@ namespace MsgPack5.H5
         private readonly Func<sbyte, Decoder> _customDecoderLookup;
         public MsgPack5Decoder(Func<sbyte, Decoder> customDecoderLookup = null) => _customDecoderLookup = customDecoderLookup;
 
-        public T Decode<T>(byte[] data) => Decode<T>(new DefaultBuffer(data ?? throw new ArgumentNullException(nameof(data))));
+        public T Decode<T>(byte[] data) => Decode<T>(new ByteArrayBackedBuffer(data ?? throw new ArgumentNullException(nameof(data))));
 
         public T Decode<T>(IBuffer buf)
         {
@@ -198,31 +198,26 @@ namespace MsgPack5.H5
             if (size == 4)
                 return new DecodeResult(buf.ReadInt32BE(offset), size + 1);
             if (size == 8)
-                return new DecodeResult(ReadInt64BE(buf.SliceAsBuffer(offset, size: 8), 0), size + 1);
+                return new DecodeResult(ReadInt64BE(buf.Slice(offset, size: 8)), size + 1);
             throw new InvalidOperationException("Invalid size for reading signed integer: " + size);
         }
 
-        private static long ReadInt64BE(IBuffer buf, uint offset)
+        private static long ReadInt64BE(byte[] bytes)
         {
-            var negate = (buf[offset] & 0x80) == 0x80;
+            var negate = (bytes[0] & 0x80) == 0x80;
             if (negate)
             {
-                //var bufferSliceToConsider = buf.Slice(
-
-
-
-
-
                 var carry = 1;
-                for (var i = offset + 7; i >= offset; i--)
+                for (var i = 7; i >= 0; i--)
                 {
-                    var v = (buf[i] ^ 0xff) + carry;
-                    buf[i] = (byte)(v & 0xff);
+                    var v = (bytes[i] ^ 0xff) + carry;
+                    bytes[i] = (byte)(v & 0xff);
                     carry = v >> 8;
                 }
             }
-            var hi = buf.ReadUInt32BE(offset + 0);
-            var lo = buf.ReadUInt32BE(offset + 4);
+            var buf = new ByteArrayBackedBuffer(bytes);
+            var hi = buf.ReadUInt32BE(0);
+            var lo = buf.ReadUInt32BE(4);
             return (hi * 4294967296 + lo) * (negate ? -1 : 1);
         }
 

@@ -3,11 +3,11 @@ using System.Text;
 
 namespace MsgPack5.H5
 {
-    public sealed class DefaultBuffer : IBuffer
+    public sealed class ByteArrayBackedBuffer : IBuffer
     {
         private readonly byte[] _data;
         private uint _position;
-        public DefaultBuffer(byte[] data)
+        public ByteArrayBackedBuffer(byte[] data)
         {
             _data = data ?? throw new ArgumentNullException(nameof(data));
             _position = 0;
@@ -21,11 +21,6 @@ namespace MsgPack5.H5
             {
                 CheckPosition(numberOfBytesRequired: 1);
                 return (byte)_data.GetValue((int)(offset + _position));
-            }
-            set
-            {
-                CheckPosition(numberOfBytesRequired: 1);
-                _data.SetValue(value, (int)(offset + _position));
             }
         }
 
@@ -43,7 +38,7 @@ namespace MsgPack5.H5
             return slice;
         }
 
-        public IBuffer SliceAsBuffer(uint start, uint size) => new DefaultBuffer(Slice(start, size));
+        public IBuffer SliceAsBuffer(uint start, uint size) => new ByteArrayBackedBuffer(Slice(start, size));
 
         public sbyte ReadInt8(uint offset)
         {

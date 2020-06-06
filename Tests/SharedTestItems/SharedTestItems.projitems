@@ -11,12 +11,18 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)ConcreteTypeTestItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestByteMax.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestDoubleMin.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestDoubleMax.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestDouble.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestFloatMin.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestFloatMax.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestIntMin.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestIntMax.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestLongMin.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestLongMax.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestSByteMin.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestSByteMax.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestShortMin.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestShortMax.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestShort.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestUIntMax.cs" />
