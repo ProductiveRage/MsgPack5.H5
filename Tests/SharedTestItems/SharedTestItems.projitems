@@ -35,6 +35,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestInt.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestByte.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestLongerString.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestDateTime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestStringNull.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestThing0.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestString.cs" />
