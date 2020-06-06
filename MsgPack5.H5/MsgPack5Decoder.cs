@@ -18,10 +18,7 @@ namespace MsgPack5.H5
 
         public T Decode<T>(IBuffer buf)
         {
-            var result = TryDecode(buf, 0, typeof(T));
-            if (result.NumberOfBytesConsumed == 0)
-                throw new IncompleteBufferError(); // TODO: If DecodeResult.Failed will always result in this exception, let's just throw it directly at the point at which it happens
-
+            var result = Decode(buf, 0, typeof(T));
             buf.Consume(result.NumberOfBytesConsumed);
             return TryToCast<T>(result.Value);
         }
@@ -43,11 +40,10 @@ namespace MsgPack5.H5
             return (T)Convert.ChangeType(value, typeof(T));
         }
 
-        // TODO: Document the difference in scenarios between throwing an exception and returning DecodeResult.Failed
-        private DecodeResult TryDecode(IBuffer buf, uint initialOffset, Type expectedType)
+        private DecodeResult Decode(IBuffer buf, uint initialOffset, Type expectedType)
         {
             if (buf.Length < initialOffset)
-                return DecodeResult.Failed;
+                throw new IncompleteBufferError();
 
             var bufLength = buf.Length - initialOffset;
             var offset = initialOffset;
@@ -57,7 +53,7 @@ namespace MsgPack5.H5
 
             var size = TryToGetSize(first) ?? 0;
             if (bufLength < size)
-                return DecodeResult.Failed;
+                throw new IncompleteBufferError();
 
             // This may be a [Union] attribute - if so then it will will have a key that we'll use to map back to the type via [Union] attributes on this side. Note that an 0x92 value might NOT be related to a [Union], it may also be
             // an array with less than 15 elements, which is handled further down
@@ -73,7 +69,7 @@ namespace MsgPack5.H5
                         throw new InvalidOperationException($"Union type index {typeIndex} has null {nameof(unionAttribute.SubType)} specified");
 
                     offset += 1; // we've accounted for the reading of the "first" byte but we need to account for the "typeIndex" read since we've used it here (if we haven't, let its value be read again after this conditional)
-                    var decodeResult = TryDecode(buf, offset, unionAttribute.SubType);
+                    var decodeResult = Decode(buf, offset, unionAttribute.SubType);
                     return new DecodeResult(
                         decodeResult.Value,
                         decodeResult.NumberOfBytesConsumed + 2 // account for the extra two bytes that we read while ascertaining what type (from the [Union] attribute) this needed to be
@@ -102,7 +98,7 @@ namespace MsgPack5.H5
             {
                 var length = (uint)(first & 0x1f);
                 if (!IsValidDataSize(length, bufLength, 1))
-                    return DecodeResult.Failed;
+                    throw new IncompleteBufferError();
                 var result = buf.ReadUTF8String(offset, length);
                 return new DecodeResult(result, length + 1);
             }
@@ -113,7 +109,7 @@ namespace MsgPack5.H5
                 var length = buf.ReadUIntBE(offset, size - 1);
                 offset += size - 1;
                 if (!IsValidDataSize(length, bufLength, size))
-                    return DecodeResult.Failed;
+                    throw new IncompleteBufferError();
                 var result = buf.Slice(offset, length);
                 return new DecodeResult(result, size + length);
             }
@@ -124,7 +120,7 @@ namespace MsgPack5.H5
                 var type = buf.ReadInt8(offset);
                 offset += 1;
                 if (!IsValidDataSize(length, bufLength, size))
-                    return DecodeResult.Failed;
+                    throw new IncompleteBufferError();
                 return DecodeExt(buf, offset, type, length, size, expectedType);
             }
             if (inRange(0xca, 0xcb))
@@ -144,7 +140,7 @@ namespace MsgPack5.H5
                 var length = buf.ReadUIntBE(offset, size - 1);
                 offset += size - 1;
                 if (!IsValidDataSize(length, bufLength, size))
-                    return DecodeResult.Failed;
+                    throw new IncompleteBufferError();
                 var result = buf.ReadUTF8String(offset, length);
                 return new DecodeResult(result, size + length);
             }
@@ -262,7 +258,7 @@ namespace MsgPack5.H5
                 var expectedType = expectedTypeForIndex(i);
                 if (expectedType == null)
                     throw new Exception("DecodeArrayInternal received expectedTypeForIndex delegate that returned null for index " + i);
-                var decodeResult = TryDecode(buf, offset, expectedType);
+                var decodeResult = Decode(buf, offset, expectedType);
                 if (decodeResult.NumberOfBytesConsumed == 0)
                     return 0;
                 setterForIndex(i, decodeResult.Value);
@@ -278,7 +274,7 @@ namespace MsgPack5.H5
             {
                 dictionaryType = dictionaryType.BaseType;
                 if (dictionaryType == null)
-                    throw new Exception("Unable to deserialise to type: " + expectedType); // TODO: What's the difference between throwing an exception for a failure and returning DecodeResult.Failed when we run out of data?
+                    throw new Exception("Unable to deserialise to type: " + expectedType); // TODO: More specific exception
             }
 
             var dictionaryTypeArgs = dictionaryType.GetGenericArguments();
@@ -288,14 +284,14 @@ namespace MsgPack5.H5
             var offset = initialOffset;
             for (uint i = 0; i < length; i++)
             {
-                var decodeKeyResult = TryDecode(buf, offset, keyType);
+                var decodeKeyResult = Decode(buf, offset, keyType);
                 if (decodeKeyResult.NumberOfBytesConsumed == 0)
-                    return DecodeResult.Failed;
+                    throw new IncompleteBufferError();
                 offset += decodeKeyResult.NumberOfBytesConsumed;
 
-                var decodeValueResult = TryDecode(buf, offset, valueType);
+                var decodeValueResult = Decode(buf, offset, valueType);
                 if (decodeValueResult.NumberOfBytesConsumed == 0)
-                    return DecodeResult.Failed;
+                    throw new IncompleteBufferError();
                 offset += decodeValueResult.NumberOfBytesConsumed;
 
                 // Even though the key and value types will be correct, they will be wrapped in a DecodeResult instance where the Value property is an object and the non-generic IDictionary.Add method will be upset if the
@@ -350,12 +346,8 @@ namespace MsgPack5.H5
             }
         }
 
-        public sealed class IncompleteBufferError : Exception { }
-
         private struct DecodeResult
         {
-            public static DecodeResult Failed { get; } = new DecodeResult(null, 0);
-
             public DecodeResult(object value, uint numberOfBytesConsumed)
             {
                 Value = value;

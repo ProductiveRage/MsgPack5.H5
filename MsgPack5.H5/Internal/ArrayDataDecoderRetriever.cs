@@ -28,7 +28,7 @@ namespace MsgPack5.H5
                 if (getRank == null)
                     throw new Exception("No longer have acess to JS-based method System.Array.getRank - did an update of h5 change this?");
                 if (getRank(expectedType) != 1)
-                    throw new Exception("Can not deserialise to arrays if they're not one dimensional"); // TODO: Are multidimensional arrays supported by MessagePack(-CSharp)? See CountMin type in Mosaik; suggests that they ARE
+                    throw new NotSupportedException("Can not deserialise to arrays if they're not one dimensional"); // TODO: Are multidimensional arrays supported by MessagePack(-CSharp)? See CountMin type in Mosaik; suggests that they ARE
                 var elementType = expectedType.GetElementType();
                 var initialValue = Array.CreateInstance(elementType, (int)length);
                 return new ArrayDataDecoder(
