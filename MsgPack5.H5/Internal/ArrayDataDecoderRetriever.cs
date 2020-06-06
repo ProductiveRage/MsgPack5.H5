@@ -1,14 +1,14 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using H5;
 
 namespace MsgPack5.H5
 {
     internal static class ArrayDataDecoderRetriever
     {
-        private static readonly ConcurrentDictionary<Type, ArrayDataDecoder> _decodersForNestedTypes = new ConcurrentDictionary<Type, ArrayDataDecoder>();
+        private static readonly Dictionary<Type, ArrayDataDecoder> _decodersForNestedTypes = new Dictionary<Type, ArrayDataDecoder>(); // 2020-06-05 DWR: Expect this to be run in the browser so there are no threading issues, so no need for ConcurrentDictionary
 
         /// <summary>
         /// This returns a type that analyses the target type and returns an object that will allow an array of objects to be read and for them to be used to populate the values in the target instance - if the target instance is an
@@ -24,23 +24,30 @@ namespace MsgPack5.H5
             // If the expectedType is already an array then it's easy to work out how to populate it (this will happen if type param T given to MsgPack5Decoder's Decode was this array type)
             if (expectedType.IsArray)
             {
-                if (expectedType.GetArrayRank() != 1)
+                var getRank = Script.Write<Func<Type, int>>("((typeof(System) !== 'undefined') && System.Array) ? System.Array.getRank : null"); // H5-INTERNALS: The GetRank() method on array types is not available as it is in .NET, so jump into the JS
+                if (getRank == null)
+                    throw new Exception("No longer have acess to JS-based method System.Array.getRank - did an update of h5 change this?");
+                if (getRank(expectedType) != 1)
                     throw new Exception("Can not deserialise to arrays if they're not one dimensional"); // TODO: Are multidimensional arrays supported by MessagePack(-CSharp)? See CountMin type in Mosaik; suggests that they ARE
                 var elementType = expectedType.GetElementType();
-                var initialValue = Array.CreateInstance(elementType, (long)length);
+                var initialValue = Array.CreateInstance(elementType, (int)length);
                 return new ArrayDataDecoder(
                     expectedTypeForIndex: _ => elementType,
-                    setterForIndex: (index, value) => initialValue.SetValue(value, (long)index),
+                    setterForIndex: (index, value) => initialValue.SetValue(value, (int)index),
                     finalResultGenerator: () => initialValue
                 );
             }
 
             // If this isn't a [MessagePack] object then there isn't much more that we can do here
-            if (!expectedType.GetCustomAttributes(typeof(MessagePackObjectAttribute)).Any())
+            if (!expectedType.GetCustomAttributes(typeof(MessagePackObjectAttribute), inherit: false).Any())
                 return null;
 
             // If the expectedType is NOT an array and it IS a [MessagePack] object then presume that we can dig into its members and look have [Key(..)] attributes and that their values will correspond to indexed values in the array
-            return _decodersForNestedTypes.GetOrAdd(expectedType, TryToGetArrayDecoderWhereArrayElementsAreMembersOfExpectedType);
+            if (_decodersForNestedTypes.TryGetValue(expectedType, out var arrayDataDecoder))
+                return arrayDataDecoder;
+            arrayDataDecoder = TryToGetArrayDecoderWhereArrayElementsAreMembersOfExpectedType(expectedType);
+            _decodersForNestedTypes[expectedType] = arrayDataDecoder;
+            return arrayDataDecoder;
         }
 
         private static ArrayDataDecoder TryToGetArrayDecoderWhereArrayElementsAreMembersOfExpectedType(Type expectedType)
@@ -49,7 +56,7 @@ namespace MsgPack5.H5
             // TODO: For this first pass, require parameterless public constructor (and no other public constructor?)
 
             // TODO: Look for [SerializationConstructor] constructor - no ambiguity, then! (TODO: Have to be public?)
-            var attributeConstructors = expectedType.GetConstructors().Where(c => c.GetCustomAttributes<SerializationConstructorAttribute>().Any()).ToArray();
+            var attributeConstructors = expectedType.GetConstructors().Where(c => c.GetCustomAttributes(typeof(SerializationConstructorAttribute)).Any()).ToArray();
             if (attributeConstructors.Length > 1)
                 throw new Exception("Multiple [SerializationConstructor] constructors"); // TODO: More specialised exception type
             else if (attributeConstructors.Length == 1)
@@ -59,12 +66,12 @@ namespace MsgPack5.H5
                 //   data by calling ctor using arg list and then setting fields/properties after
             }
 
-            var parameterlessConstructor = expectedType.GetConstructor(Type.EmptyTypes);
+            var parameterlessConstructor = expectedType.GetConstructor(new Type[0]);
             if (parameterlessConstructor == null)
                 throw new Exception("Currently only support [MessagePackObject] types that may be created via a parameterless constructor");
 
             var keyedMembers = GetLookupForKeyMembers(expectedType);
-            var initialValue = parameterlessConstructor.Invoke(Array.Empty<object>());
+            var initialValue = parameterlessConstructor.Invoke(new object[0]);
             return new ArrayDataDecoder(
                 expectedTypeForIndex: index => keyedMembers(index)?.Type ?? typeof(object), // The "index" here of the array element corresponds to the [Key(..)] attribute value on the expectedType
                 setterForIndex: (index, value) => keyedMembers(index)?.Set(initialValue, value),

@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
 namespace MsgPack5.H5
 {
@@ -67,7 +66,7 @@ namespace MsgPack5.H5
                 var typeIndex = buf.ReadUInt8(offset);
 
                 // TODO: Cache this lookup?
-                var unionAttribute = expectedType.GetCustomAttributes<UnionAttribute>().FirstOrDefault(union => union.Key == typeIndex);
+                var unionAttribute = expectedType.GetCustomAttributes(inherit: false).OfType<UnionAttribute>().FirstOrDefault(union => union.Key == typeIndex);
                 if (unionAttribute is object)
                 {
                     if (unionAttribute.SubType is null)
@@ -227,7 +226,7 @@ namespace MsgPack5.H5
             ulong result = 0;
             while (offset < maxOffset)
             {
-                result += buf.ReadUInt8(offset++) * (ulong)Math.Pow(256, maxOffset - offset);
+                result += buf.ReadUInt8(offset++) * (ulong)Math.Pow(256, (int)(maxOffset - offset));
             }
             return new DecodeResult(result, size + 1);
         }

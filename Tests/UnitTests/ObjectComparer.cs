@@ -1,33 +1,15 @@
-using KellermanSoftware.CompareNetObjects;
+using Newtonsoft.Json;
 
-namespace MsgPack5.H5.Tests.UnitTests
+namespace UnitTests
 {
-	internal static class ObjectComparer
-	{
-		public static bool AreEqual(object x, object y) => AreEqual(x, y, out _);
+    internal static class ObjectComparer
+    {
+        public static bool AreEqual(object x, object y)
+        {
+            // There might be a better way to do this (a testing library for that could be made to work with H5 but this should suffice for now)
+            return SerialiseToJson(x) == SerialiseToJson(y);
 
-		public static bool AreEqual(object x, object y, out string differenceSummaryIfNotEqual)
-		{
-			if ((x == null) && (y == null))
-			{
-				differenceSummaryIfNotEqual = null;
-				return true;
-			}
-			else if ((x == null) && (y == null))
-			{
-				differenceSummaryIfNotEqual = "One value is null and the other is not";
-				return false;
-			}
-
-			var comparer = new CompareLogic(new ComparisonConfig { ComparePrivateFields = true, ComparePrivateProperties = true });
-			var comparisonResult = comparer.Compare(x, y);
-			if (comparisonResult.AreEqual)
-			{
-				differenceSummaryIfNotEqual = null;
-				return true;
-			}
-			differenceSummaryIfNotEqual = comparisonResult.DifferencesString;
-			return false;
-		}
-	}
+            string SerialiseToJson(object value) => JsonConvert.SerializeObject(value, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All });
+        }
+    }
 }

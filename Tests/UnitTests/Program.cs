@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using MsgPack5.H5;
 using MsgPack5.H5.Tests.SharedTestItems;
+using static H5.Core.dom;
 
-namespace MsgPack5.H5.Tests.UnitTests
+namespace UnitTests
 {
-    // TODO: Turn this into a unit test UI project
     internal static class Program
     {
         private static void Main()
@@ -21,32 +22,30 @@ namespace MsgPack5.H5.Tests.UnitTests
                     var clone = decoder(serialised);
                     if (ObjectComparer.AreEqual(testItem.Value, clone))
                     {
+                        document.body.appendChild(GetMessage(testItemName, isSuccess: true));
                         successes.Add(testItemName);
                         continue;
                     }
                 }
                 catch { }
+                document.body.appendChild(GetMessage(testItemName, isSuccess: true));
                 failures.Add(testItemName);
             }
 
-            Console.WriteLine("Number of successes: " + successes.Count);
+            console.log("Number of successes: " + successes.Count);
             foreach (var name in successes)
-                Console.WriteLine("- " + name);
-            
-            Console.WriteLine();
+                console.log("- " + name);
 
-            Console.WriteLine("Number of failures: " + failures.Count);
+            console.log();
+
+            console.log("Number of failures: " + failures.Count);
             foreach (var name in failures)
-                Console.WriteLine("- " + name);
-
-            Console.WriteLine();
-            Console.WriteLine("Press [Enter] to terminate..");
-            Console.ReadLine();
+                console.log("- " + name);
         }
 
         private static Func<byte[], object> GetNonGenericDecoder(MsgPack5Decoder decoder, Type deserialiseAs)
         {
-            var unboundGetDecoderMethod = typeof(Program).GetMethod(nameof(GetDecoder), genericParameterCount: 1, BindingFlags.Static | BindingFlags.NonPublic, binder: null, types: new[] { typeof(MsgPack5Decoder) }, modifiers: null );
+            var unboundGetDecoderMethod = typeof(Program).GetMethod(nameof(GetDecoder), BindingFlags.Static | BindingFlags.NonPublic, parameterTypes: new[] { typeof(MsgPack5Decoder) });
             if (unboundGetDecoderMethod is null)
                 throw new Exception("Internal error while trying to retrieve method to form a non-generic Decode call for unit test - this shouldn't be possible");
 
@@ -55,5 +54,17 @@ namespace MsgPack5.H5.Tests.UnitTests
         }
 
         private static Func<byte[], object> GetDecoder<T>(MsgPack5Decoder decoder) => serialised => decoder.Decode<T>(serialised);
+
+        private static HTMLElement GetMessage(string text, bool isSuccess)
+        {
+            var d = new HTMLDivElement { innerText = text };
+            d.style.color = "white";
+            d.style.backgroundColor = isSuccess ? "#0a0" : "#c00";
+            d.style.border = "1px solid " + (isSuccess ? "#080" : "#900");
+            d.style.borderRadius = "0.25rem";
+            d.style.padding = "0.5rem 1rem";
+            d.style.marginBottom = "0.5rem";
+            return d;
+        }
     }
 }

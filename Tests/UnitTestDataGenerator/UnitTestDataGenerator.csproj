@@ -3,8 +3,6 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <AssemblyName>MsgPack5.H5.Tests.UnitTestDataGenerator</AssemblyName>
-    <RootNamespace>MsgPack5.H5.Tests.UnitTestDataGenerator</RootNamespace>
   </PropertyGroup>
 
   <Import Project="..\SharedTypes\SharedTypes.projitems" Label="Shared" />

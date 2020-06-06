@@ -6,11 +6,11 @@ using System.Text;
 using MessagePack;
 using MsgPack5.H5.Tests.SharedTestItems;
 
-namespace MsgPack5.H5.Tests.UnitTestDataGenerator
+namespace UnitTestDataGenerator
 {
     internal sealed class Program
     {
-        private const string _testDataNamespace = "MsgPack5.H5.Tests.UnitTests";
+        private const string _testDataNamespace = "UnitTests";
         private const string _testDataFilename = "TestData.cs";
 
         private static void Main(string[] args)

@@ -1,0 +1,22 @@
+﻿{
+  "outputFormatting": "Formatted",
+  "output": "$(OutDir)/h5/",
+  "combineScripts": false,
+  "sourceMap": { "enabled": false },
+  "html": { "disabled": false },
+  "cleanOutputFolderBeforeBuildPattern": "*.*",
+  "console": { "enabled": false },
+  "reflection": { "disabled": false, "target": "inline" },
+  "generateTypeScript": false,
+  "report": { "enabled": false },
+  "rules": {
+    "anonymousType": "Plain",
+    "arrayIndex": "Managed",
+    "autoProperty": "Plain",
+    "boxing": "Managed",
+    "externalCast": "Plain",
+    "inlineComment": "Plain",
+    "integer": "Managed",
+    "lambda": "Plain"
+  }
+}

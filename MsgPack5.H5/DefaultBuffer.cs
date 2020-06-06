@@ -3,6 +3,7 @@ using System.Text;
 
 namespace MsgPack5.H5
 {
+    // TODO: Maybe change all the "(u)long" references in here since H5 arrays don't support long indexes - and we would struggle with that much data anyway (in an array, at least, potentially an IBuffer implementation could stream the data)!
     public sealed class DefaultBuffer : IBuffer
     {
         private readonly byte[] _data;
@@ -20,12 +21,12 @@ namespace MsgPack5.H5
             get
             {
                 CheckPosition(numberOfBytesRequired: 1);
-                return (byte)_data.GetValue((long)(offset + _position));
+                return (byte)_data.GetValue((int)(offset + _position));
             }
             set
             {
                 CheckPosition(numberOfBytesRequired: 1);
-                _data.SetValue(value, (long)(offset + _position));
+                _data.SetValue(value, (int)(offset + _position));
             }
         }
 
@@ -43,7 +44,7 @@ namespace MsgPack5.H5
             var length = end - start;
             CheckPosition(numberOfBytesRequired: length);
             var slice = new byte[length];
-            Array.Copy(sourceArray: _data, sourceIndex: (long)(start + _position), destinationArray: slice, destinationIndex: 0, length: (long)length);
+            Array.Copy(src: _data, spos: (long)(start + _position), dst: slice, dpos: 0, len: (long)length);
             return slice;
         }
 
