@@ -93,7 +93,7 @@ namespace MsgPack5.H5
                         if (keyAttribute == null)
                         {
                             if (!p.GetCustomAttributes(typeof(IgnoreMemberAttribute)).Any())
-                                throw new Exception("All fields and properties in [MessagePackObject] type must have either [Key(..)] or [IgnoreMember] attributes, which is not the case for type " + expectedType); // TODO: Specialised exception type
+                                throw new MemberWithoutKeyOrIgnoreException(expectedType, p);
                             return null;
                         }
                         return new { keyAttribute.Key, Member = new MemberSummary(p.PropertyType, p.Name, instanceAndValueToSet => p.SetValue(instanceAndValueToSet.Instance, instanceAndValueToSet.ValueToSet)) };
@@ -106,7 +106,7 @@ namespace MsgPack5.H5
                         if (keyAttribute == null)
                         {
                             if (!f.GetCustomAttributes(typeof(IgnoreMemberAttribute)).Any())
-                                throw new Exception("All fields and properties in [MessagePackObject] type must have either [Key(..)] or [IgnoreMember] attributes, which is not the case for type " + expectedType); // TODO: Specialised exception type
+                                throw new MemberWithoutKeyOrIgnoreException(expectedType, f);
                             return null;
                         }
                         return new { keyAttribute.Key, Member = new MemberSummary(f.FieldType, f.Name, instanceAndValueToSet => f.SetValue(instanceAndValueToSet.Instance, instanceAndValueToSet.ValueToSet)) };
@@ -119,7 +119,7 @@ namespace MsgPack5.H5
                         // TODO: Consider expanding support of this - if there are multiple members with the same Key value that are of the same type then should be easy enough; if there are
                         // multiple members with the same Key value but the types are compatible then should also be able to support that; might even be able to handle extended interpretations
                         // of "compatible" with implicit/explicit operators?
-                        throw new Exception("Repeated Key value encountered when analysing type" + expectedType); // TODO: Make it a more specialised exception type
+                        throw new RepeatedKeyValueException(expectedType, keyedMember.Key);
                     }
                     keyedMembers.Add(keyedMember.Key, keyedMember.Member);
                 }
