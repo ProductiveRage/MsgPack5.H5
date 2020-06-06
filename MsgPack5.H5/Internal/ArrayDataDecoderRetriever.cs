@@ -15,7 +15,7 @@ namespace MsgPack5.H5
         /// array then this is a simple task but arrays of values are also used to represent the data for objects where members have Key attributes and, in that case, the returned ArrayDataDecoder will set the individual properties
         /// on the target instance as the values in the array are read from the data stream.
         /// </summary>
-        public static ArrayDataDecoder TryToGetFor(Type expectedType, ulong length)
+        public static ArrayDataDecoder TryToGetFor(Type expectedType, uint length)
         {
             // TODO: Need to support other types - IEnumerable<T>, List<T>, etc..
             // TODO: Need to handle types that could be initialised with one of the supported types (array, List<T>, etc..) - either via constructor or through implicit/explicit operators(?)
@@ -79,9 +79,9 @@ namespace MsgPack5.H5
             );
         }
 
-        private static Func<ulong, MemberSummary> GetLookupForKeyMembers(Type expectedType)
+        private static Func<uint, MemberSummary> GetLookupForKeyMembers(Type expectedType)
         {
-            var keyedMembers = new Dictionary<ulong, MemberSummary>();
+            var keyedMembers = new Dictionary<uint, MemberSummary>();
             var typeToExamine = expectedType;
             while (typeToExamine != null)
             {

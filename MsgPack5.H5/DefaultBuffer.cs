@@ -3,20 +3,19 @@ using System.Text;
 
 namespace MsgPack5.H5
 {
-    // TODO: Maybe change all the "(u)long" references in here since H5 arrays don't support long indexes - and we would struggle with that much data anyway (in an array, at least, potentially an IBuffer implementation could stream the data)!
     public sealed class DefaultBuffer : IBuffer
     {
         private readonly byte[] _data;
-        private ulong _position;
+        private uint _position;
         public DefaultBuffer(byte[] data)
         {
             _data = data ?? throw new ArgumentNullException(nameof(data));
             _position = 0;
         }
 
-        public ulong Length => (ulong)_data.LongLength - _position;
+        public uint Length => (uint)_data.Length - _position;
 
-        public byte this[ulong offset]
+        public byte this[uint offset]
         {
             get
             {
@@ -30,13 +29,13 @@ namespace MsgPack5.H5
             }
         }
 
-        public void Consume(ulong numberOfBytes)
+        public void Consume(uint numberOfBytes)
         {
             CheckPosition(numberOfBytesRequired: 1);
             _position += numberOfBytes;
         }
 
-        public byte[] Slice(ulong start, ulong end)
+        public byte[] Slice(uint start, uint end)
         {
             if (end < start)
                 throw new ArgumentOutOfRangeException(nameof(end), "can't be smaller than " + nameof(start));
@@ -44,37 +43,37 @@ namespace MsgPack5.H5
             var length = end - start;
             CheckPosition(numberOfBytesRequired: length);
             var slice = new byte[length];
-            Array.Copy(src: _data, spos: (long)(start + _position), dst: slice, dpos: 0, len: (long)length);
+            Array.Copy(src: _data, spos: start + _position, dst: slice, dpos: 0, len: length);
             return slice;
         }
 
-        public IBuffer SliceAsBuffer(ulong start, ulong end) => new DefaultBuffer(Slice(start, end));
+        public IBuffer SliceAsBuffer(uint start, uint end) => new DefaultBuffer(Slice(start, end));
 
-        public sbyte ReadInt8(ulong offset)
+        public sbyte ReadInt8(uint offset)
         {
             CheckPosition(numberOfBytesRequired: 1);
             return (sbyte)_data[offset];
         }
 
-        public byte ReadUInt8(ulong offset) => (byte)ReadInt8(offset);
+        public byte ReadUInt8(uint offset) => (byte)ReadInt8(offset);
 
-        public short ReadInt16BE(ulong offset)
+        public short ReadInt16BE(uint offset)
         {
             CheckPosition(numberOfBytesRequired: 2);
             return (short)((this[offset] << 8) | this[offset + 1]);
         }
 
-        public ushort ReadUInt16BE(ulong offset) => (ushort)ReadInt16BE(offset);
+        public ushort ReadUInt16BE(uint offset) => (ushort)ReadInt16BE(offset);
 
-        public int ReadInt32BE(ulong offset)
+        public int ReadInt32BE(uint offset)
         {
             CheckPosition(numberOfBytesRequired: 4);
             return (this[offset] << 24) + (this[offset + 1] << 16) | (this[offset + 2] << 8) | this[offset + 3];
         }
 
-        public uint ReadUInt32BE(ulong offset) => (uint)ReadInt32BE(offset);
+        public uint ReadUInt32BE(uint offset) => (uint)ReadInt32BE(offset);
 
-        public float ReadFloatBE(ulong offset)
+        public float ReadFloatBE(uint offset)
         {
             var bytes = Slice(offset, offset + 4);
             if (BitConverter.IsLittleEndian)
@@ -89,7 +88,7 @@ namespace MsgPack5.H5
             return BitConverter.ToSingle(bytes, 0);
         }
 
-        public double ReadDoubleBE(ulong offset)
+        public double ReadDoubleBE(uint offset)
         {
             var bytes = Slice(offset, offset + 8);
             if (BitConverter.IsLittleEndian)
@@ -110,7 +109,7 @@ namespace MsgPack5.H5
             return BitConverter.ToDouble(bytes, 0);
         }
 
-        public ulong ReadUIntBE(ulong offset, ulong size)
+        public uint ReadUIntBE(uint offset, uint size)
         {
             if (size == 1)
                 return ReadUInt8(offset);
@@ -121,9 +120,9 @@ namespace MsgPack5.H5
             throw new InvalidOperationException("Invalid UIntBE size (only support 1, 2, 4): " + size);
         }
 
-        public string ReadUTF8String(ulong start, ulong end) => Encoding.UTF8.GetString(Slice(start, end));
+        public string ReadUTF8String(uint start, uint end) => Encoding.UTF8.GetString(Slice(start, end));
 
-        private void CheckPosition(ulong numberOfBytesRequired)
+        private void CheckPosition(uint numberOfBytesRequired)
         {
             if (Length < numberOfBytesRequired)
                 throw new InvalidOperationException("Attempt to read past end of content");

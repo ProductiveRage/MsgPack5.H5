@@ -2,26 +2,26 @@
 {
     public interface IBuffer
     {
-        ulong Length { get; }
+        uint Length { get; }
 
-        byte this[ulong offset] { get; set; }
+        byte this[uint offset] { get; set; }
 
-        void Consume(ulong numberOfBytes);
+        void Consume(uint numberOfBytes);
 
-        byte[] Slice(ulong start, ulong end);
-        IBuffer SliceAsBuffer(ulong start, ulong end);
+        byte[] Slice(uint start, uint end);
+        IBuffer SliceAsBuffer(uint start, uint end);
 
-        sbyte ReadInt8(ulong offset);
-        byte ReadUInt8(ulong offset);
-        short ReadInt16BE(ulong offset);
-        ushort ReadUInt16BE(ulong offset);
-        int ReadInt32BE(ulong offset);
-        uint ReadUInt32BE(ulong offset);
-        float ReadFloatBE(ulong offset);
-        double ReadDoubleBE(ulong offset);
+        sbyte ReadInt8(uint offset);
+        byte ReadUInt8(uint offset);
+        short ReadInt16BE(uint offset);
+        ushort ReadUInt16BE(uint offset);
+        int ReadInt32BE(uint offset);
+        uint ReadUInt32BE(uint offset);
+        float ReadFloatBE(uint offset);
+        double ReadDoubleBE(uint offset);
 
-        ulong ReadUIntBE(ulong offset, ulong size);
+        uint ReadUIntBE(uint offset, uint size);
 
-        string ReadUTF8String(ulong start, ulong end);
+        string ReadUTF8String(uint start, uint end);
     }
 }

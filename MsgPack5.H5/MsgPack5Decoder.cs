@@ -20,7 +20,7 @@ namespace MsgPack5.H5
         {
             var result = TryDecode(buf, 0, typeof(T));
             if (result.NumberOfBytesConsumed == 0)
-                throw new IncompleteBufferError();
+                throw new IncompleteBufferError(); // TODO: If DecodeResult.Failed will always result in this exception, let's just throw it directly at the point at which it happens
 
             buf.Consume(result.NumberOfBytesConsumed);
             return TryToCast<T>(result.Value);
@@ -44,7 +44,7 @@ namespace MsgPack5.H5
         }
 
         // TODO: Document the difference in scenarios between throwing an exception and returning DecodeResult.Failed
-        private DecodeResult TryDecode(IBuffer buf, ulong initialOffset, Type expectedType)
+        private DecodeResult TryDecode(IBuffer buf, uint initialOffset, Type expectedType)
         {
             if (buf.Length < initialOffset)
                 return DecodeResult.Failed;
@@ -179,7 +179,7 @@ namespace MsgPack5.H5
             bool inRange(uint start, uint end) => first >= start && first <= end;
         }
 
-        private static bool IsValidDataSize(ulong dataLength, ulong bufLength, ulong headerLength) => bufLength >= headerLength + dataLength;
+        private static bool IsValidDataSize(uint dataLength, uint bufLength, uint headerLength) => bufLength >= headerLength + dataLength;
 
         private static DecodeResult DecodeConstants(byte first)
         {
@@ -189,7 +189,7 @@ namespace MsgPack5.H5
             throw new InvalidOperationException("Unrecognised constant value: " + first);
         }
 
-        private static DecodeResult DecodeSigned(IBuffer buf, ulong offset, ulong size)
+        private static DecodeResult DecodeSigned(IBuffer buf, uint offset, uint size)
         {
             if (size == 1)
                 return new DecodeResult(buf.ReadInt8(offset), size + 1);
@@ -202,7 +202,7 @@ namespace MsgPack5.H5
             throw new InvalidOperationException("Invalid size for reading signed integer: " + size);
         }
 
-        private static long ReadInt64BE(IBuffer buf, ulong offset)
+        private static long ReadInt64BE(IBuffer buf, uint offset)
         {
             var negate = (buf[offset] & 0x80) == 0x80;
             if (negate)
@@ -220,7 +220,7 @@ namespace MsgPack5.H5
             return (hi * 4294967296 + lo) * (negate ? -1 : 1);
         }
 
-        private static DecodeResult DecodeUnsignedInt(IBuffer buf, ulong offset, ulong size)
+        private static DecodeResult DecodeUnsignedInt(IBuffer buf, uint offset, uint size)
         {
             var maxOffset = offset + size;
             ulong result = 0;
@@ -231,7 +231,7 @@ namespace MsgPack5.H5
             return new DecodeResult(result, size + 1);
         }
 
-        private static DecodeResult DecodeFloat(IBuffer buf, ulong offset, ulong size)
+        private static DecodeResult DecodeFloat(IBuffer buf, uint offset, uint size)
         {
             if (size == 4)
                 return new DecodeResult(buf.ReadFloatBE(offset), size + 1);
@@ -240,7 +240,7 @@ namespace MsgPack5.H5
             throw new InvalidOperationException("Invalid size for reading floating point number: " + size);
         }
 
-        private DecodeResult DecodeArray(IBuffer buf, ulong initialOffset, ulong length, ulong headerLength, Type expectedType)
+        private DecodeResult DecodeArray(IBuffer buf, uint initialOffset, uint length, uint headerLength, Type expectedType)
         {
             var decoder = ArrayDataDecoderRetriever.TryToGetFor(expectedType, length);
             if (decoder == null)
@@ -253,10 +253,10 @@ namespace MsgPack5.H5
         /// <summary>
         /// This will return the number of bytes consumed
         /// </summary>
-        private ulong DecodeArrayInternal(IBuffer buf, ulong initialOffset, ulong length, ulong headerLength, Func<ulong, Type> expectedTypeForIndex, Action<ulong, object> setterForIndex)
+        private uint DecodeArrayInternal(IBuffer buf, uint initialOffset, uint length, uint headerLength, Func<uint, Type> expectedTypeForIndex, Action<uint, object> setterForIndex)
         {
             var offset = initialOffset;
-            for (ulong i = 0; i < length; i++)
+            for (uint i = 0; i < length; i++)
             {
                 var expectedType = expectedTypeForIndex(i);
                 if (expectedType == null)
@@ -270,7 +270,7 @@ namespace MsgPack5.H5
             return headerLength + offset - initialOffset;
         }
 
-        private DecodeResult DecodeMap(IBuffer buf, ulong initialOffset, ulong length, ulong headerLength, Type expectedType)
+        private DecodeResult DecodeMap(IBuffer buf, uint initialOffset, uint length, uint headerLength, Type expectedType)
         {
             var dictionaryType = expectedType;
             while (!dictionaryType.IsGenericType || (dictionaryType.GetGenericTypeDefinition() != typeof(Dictionary<,>)))
@@ -285,7 +285,7 @@ namespace MsgPack5.H5
             var valueType = dictionaryTypeArgs[1];
             var dictionary = (IDictionary)Activator.CreateInstance(dictionaryType);
             var offset = initialOffset;
-            for (ulong i = 0; i < length; i++)
+            for (uint i = 0; i < length; i++)
             {
                 var decodeKeyResult = TryDecode(buf, offset, keyType);
                 if (decodeKeyResult.NumberOfBytesConsumed == 0)
@@ -304,7 +304,7 @@ namespace MsgPack5.H5
             return new DecodeResult(dictionary, headerLength + offset - initialOffset);
         }
 
-        private DecodeResult DecodeExt(IBuffer buf, ulong offset, sbyte typeCode, ulong size, ulong headerLength, Type expectedType)
+        private DecodeResult DecodeExt(IBuffer buf, uint offset, sbyte typeCode, uint size, uint headerLength, Type expectedType)
         {
             var decoder = _customDecoderLookup?.Invoke(typeCode);
             if (decoder == null)
@@ -355,7 +355,7 @@ namespace MsgPack5.H5
         {
             public static DecodeResult Failed { get; } = new DecodeResult(null, 0);
 
-            public DecodeResult(object value, ulong numberOfBytesConsumed)
+            public DecodeResult(object value, uint numberOfBytesConsumed)
             {
                 Value = value;
                 NumberOfBytesConsumed = numberOfBytesConsumed;
@@ -366,7 +366,7 @@ namespace MsgPack5.H5
             /// <summary>
             /// A value of zero indicates that no data was read (and so the decode attempt faileD)
             /// </summary>
-            public ulong NumberOfBytesConsumed { get; }
+            public uint NumberOfBytesConsumed { get; }
         }
     }
 }

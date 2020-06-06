@@ -10,8 +10,24 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)ConcreteTypeTestItem.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TestInt.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TestByte.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestByteMax.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestDoubleMax.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestDouble.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestFloatMax.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestIntMax.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestLongMax.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestSByteMax.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestShortMax.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestShort.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestUIntMax.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestUInt.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestSByte.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestLong.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestULongMax.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestULong.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestFloat.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestInt.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestByte.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestStringNull.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestThing0.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestString.cs" />
