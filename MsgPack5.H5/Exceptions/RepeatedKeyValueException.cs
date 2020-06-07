@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 
 namespace MsgPack5.H5
 {
@@ -7,14 +8,22 @@ namespace MsgPack5.H5
     /// </summary>
     public sealed class RepeatedKeyValueException : Exception
     {
-        public RepeatedKeyValueException(Type type, uint key) : base(GetMessage(type, key))
+        public RepeatedKeyValueException(Type type, uint key, (MemberInfo Member1, MemberInfo Member2) firstCollision) : base(GetMessage(type, key))
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             Key = key;
+            FirstCollision = firstCollision;
+            if ((firstCollision.Member1 is null) || (firstCollision.Member2 is null))
+                throw new ArgumentException("neither of the member info references may be null", nameof(firstCollision));
         }
 
         public Type Type { get; }
         public uint Key { get; }
+
+        /// <summary>
+        /// This only specifies the first collision (the first two members encountered that repeat the same key index - there may be more)
+        /// </summary>
+        public (MemberInfo Member1, MemberInfo Member2) FirstCollision { get; }
 
         private static string GetMessage(Type type, uint key) => $"All fields and properties in [MessagePackObject] that have [Key] attributes must have unique key indexes, which is not the case for type {type?.Name} and key {key}";
     }

@@ -96,7 +96,7 @@ namespace MsgPack5.H5
                                 throw new MemberWithoutKeyOrIgnoreException(expectedType, p);
                             return null;
                         }
-                        return new { keyAttribute.Key, Member = new MemberSummary(p.PropertyType, p.Name, instanceAndValueToSet => p.SetValue(instanceAndValueToSet.Instance, instanceAndValueToSet.ValueToSet)) };
+                        return new { keyAttribute.Key, MemberSummary = new MemberSummary(p.PropertyType, p, instanceAndValueToSet => p.SetValue(instanceAndValueToSet.Instance, instanceAndValueToSet.ValueToSet)) };
                     })
                     .Where(p => p != null);
                 var fields = typeToExamine.GetFields(BindingFlags.Public | BindingFlags.Instance)
@@ -109,19 +109,19 @@ namespace MsgPack5.H5
                                 throw new MemberWithoutKeyOrIgnoreException(expectedType, f);
                             return null;
                         }
-                        return new { keyAttribute.Key, Member = new MemberSummary(f.FieldType, f.Name, instanceAndValueToSet => f.SetValue(instanceAndValueToSet.Instance, instanceAndValueToSet.ValueToSet)) };
+                        return new { keyAttribute.Key, MemberSummary = new MemberSummary(f.FieldType, f, instanceAndValueToSet => f.SetValue(instanceAndValueToSet.Instance, instanceAndValueToSet.ValueToSet)) };
                     })
                     .Where(f => f != null);
                 foreach (var keyedMember in properties.Concat(fields))
                 {
-                    if (keyedMembers.ContainsKey(keyedMember.Key))
+                    if (keyedMembers.TryGetValue(keyedMember.Key, out var existingMemberWithSameKey))
                     {
                         // TODO: Consider expanding support of this - if there are multiple members with the same Key value that are of the same type then should be easy enough; if there are
                         // multiple members with the same Key value but the types are compatible then should also be able to support that; might even be able to handle extended interpretations
                         // of "compatible" with implicit/explicit operators?
-                        throw new RepeatedKeyValueException(expectedType, keyedMember.Key);
+                        throw new RepeatedKeyValueException(expectedType, keyedMember.Key, (existingMemberWithSameKey.MemberInfo, keyedMember.MemberSummary.MemberInfo));
                     }
-                    keyedMembers.Add(keyedMember.Key, keyedMember.Member);
+                    keyedMembers.Add(keyedMember.Key, keyedMember.MemberSummary);
                 }
                 typeToExamine = typeToExamine.BaseType;
             }
@@ -131,14 +131,14 @@ namespace MsgPack5.H5
         private sealed class MemberSummary
         {
             private readonly Action<(object Instance, object ValueToSet)> _setter;
-            public MemberSummary(Type type, string name, Action<(object Instance, object ValueToSet)> setter)
+            public MemberSummary(Type type, MemberInfo memberInfo, Action<(object Instance, object ValueToSet)> setter)
             {
-                Type = type ?? throw new ArgumentNullException(nameof(name));
-                Name = !string.IsNullOrWhiteSpace(name) ? name : throw new ArgumentException($"Null/blank/whitespace-only {nameof(name)} specified");
+                Type = type ?? throw new ArgumentNullException(nameof(type));
+                MemberInfo = memberInfo ?? throw new ArgumentNullException(nameof(memberInfo));
                 _setter = setter ?? throw new ArgumentNullException(nameof(setter));
             }
             public Type Type { get; }
-            public string Name { get; }
+            public MemberInfo MemberInfo { get; }
             public void Set(object instance, object valueToSet) => _setter((instance, valueToSet));
         }
     }

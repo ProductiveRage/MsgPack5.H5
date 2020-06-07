@@ -11,6 +11,8 @@ namespace UnitTests
     {
         private static void Main()
         {
+            // TODO: Group the Unit Tests into namespaces (and add tests for failure cases)
+            // TODO: Maybe show failures first? Or at least a summary at the top to indicate the numbers of successes and failures?
             var successes = new List<string>();
             var failures = new List<string>();
             foreach (var (testItemName, serialised) in TestData.GetItems())
