@@ -82,6 +82,8 @@ namespace MsgPack5.H5
             return (hi * 4294967296 + lo) * (negate ? -1 : 1);
         }
 
+        public ulong ReadUInt64BE(uint offset) => (ulong)ReadInt64BE(offset);
+
         public float ReadFloatBE(uint offset)
         {
             var bytes = Slice(offset, size: 4);

@@ -20,6 +20,7 @@ namespace MsgPack5.H5
         int ReadInt32BE(uint offset);
         uint ReadUInt32BE(uint offset);
         long ReadInt64BE(uint offset);
+        ulong ReadUInt64BE(uint offset);
         float ReadFloatBE(uint offset);
         double ReadDoubleBE(uint offset);
 

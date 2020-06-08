@@ -1,3 +1,4 @@
+using System;
 using Newtonsoft.Json;
 
 namespace UnitTests
@@ -26,6 +27,18 @@ namespace UnitTests
                     return true;
                 }
                 messageIfNot = $"Floating point number values were too far apart - expected {expected} vs {actual}";
+                return false;
+            }
+
+            // 2020-06-08 DWR: We're going to have to accept that the DateTime's Kind value may not be maintained (it doesn't survive a roundtrip via MessagePack-CSharp) and so we'll need some extra logic
+            if ((expected is DateTime expectedDateTime) && (actual is DateTime actualDateTime))
+            {
+                if (expectedDateTime.Ticks == actualDateTime.Ticks)
+                {
+                    messageIfNot = null;
+                    return true;
+                }
+                messageIfNot = $"DateTime values did not match - expected {expected} vs {actual}";
                 return false;
             }
 

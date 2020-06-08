@@ -10,7 +10,7 @@ namespace MsgPack5.H5
     {
         public delegate object Decoder(IBuffer buffer, Type expectedType);
 
-        public static MsgPack5Decoder Default { get; } = new MsgPack5Decoder();
+        public static MsgPack5Decoder Default { get; } = new MsgPack5Decoder(DateTimeDecoder.GetDecoder); // A custom decoder may be specified but the most common case for .NET payloads feels like the standard primitives plus complex type support PLUS DateTime (which is non-standard)
 
         private readonly Func<sbyte, Decoder> _customDecoderLookup;
         public MsgPack5Decoder(Func<sbyte, Decoder> customDecoderLookup = null) => _customDecoderLookup = customDecoderLookup;
