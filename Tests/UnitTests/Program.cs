@@ -6,36 +6,47 @@ using System.Threading.Tasks;
 using MsgPack5.H5;
 using MsgPack5.H5.Tests.SharedTestItems;
 using static H5.Core.dom;
+using static H5.Core.es5;
 
 namespace UnitTests
 {
     internal static class Program
     {
+        private const string _testFilterQueryStringName = "test";
+
         private static async Task Main()
         {
             var allTestItems = GetTestsToRun().ToArray();
             if (!allTestItems.Any())
             {
-                document.body.appendChild(GetMessage("There were no tests found to run", isSuccess: false));
+                document.body.appendChild(GetMessage("There were no tests found to run", hrefIfTextShouldLink: null, isSuccess: false));
                 return;
             }
 
-            var (ToDisplay, SetStatus, SetSuccessCount, SetFailureCount) = GetRunningSummary(allTestItems.Length);
+            var testNamesToFilterTo = new HashSet<string>(GetAnyTestsSpecifiedInQueryString()); // If this is empty then ALL tests will be run
+
+            var (ToDisplay, SetStatus, SetSuccessCount, SetFailureCount, SetSkippedCount) = GetRunningSummary(allTestItems.Length, showSkippedCount: testNamesToFilterTo.Any());
             document.body.appendChild(ToDisplay);
 
             // TODO: Group the Unit Tests into namespaces (and add tests for failure cases)
-            var successes = new List<string>();
-            var failures = new List<string>();
+            var skipped = new List<TestItem>();
+            var successes = new List<TestItem>();
+            var failures = new List<TestItem>();
             foreach (var testItem in allTestItems)
             {
-                if (ExecuteTest(testItem.FullName, testItem.DisplayName, testItem.Serialised, document.body))
+                if (testNamesToFilterTo.Any() && !testNamesToFilterTo.Contains(testItem.FullName) && !testNamesToFilterTo.Contains(testItem.DisplayName))
                 {
-                    successes.Add(testItem.DisplayName);
+                    skipped.Add(testItem);
+                    SetSkippedCount(successes.Count);
+                }
+                else if (ExecuteTest(testItem.FullName, testItem.DisplayName, testItem.Serialised, document.body))
+                {
+                    successes.Add(testItem);
                     SetSuccessCount(successes.Count);
                 }
                 else
                 {
-                    failures.Add(testItem.DisplayName);
+                    failures.Add(testItem);
                     SetFailureCount(failures.Count);
                 }
                 await Task.Delay(1); // Give the UI a chance to update if there have been tests that don't complete almost instantly
@@ -77,17 +88,21 @@ namespace UnitTests
                 var clone = decoder(serialised);
                 if (ObjectComparer.AreEqual(testItem.Value, clone, out var messageIfNotEqual))
                 {
-                    appendResultMessageTo.appendChild(GetMessage(displayName, isSuccess: true));
+                    appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: true));
                     return true;
                 }
-                appendResultMessageTo.appendChild(GetMessage(displayName, isSuccess: false, additionalInfo: messageIfNotEqual));
+                appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: messageIfNotEqual));
             }
             catch (Exception e)
             {
-                appendResultMessageTo.appendChild(GetMessage(displayName, isSuccess: false, additionalInfo: e.Message));
+                appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: e.Message));
             }
             return false;
         }
+        
+        // TODO: Need a way to remove filtering (..other than just clicking back after navigating to a filtered view?)
+
+        private static string GetHrefForFilteringToTest(string displayName) => $"?{_testFilterQueryStringName}={encodeURIComponent(displayName)}";
 
         private static Func<byte[], object> GetNonGenericDecoder(MsgPack5Decoder decoder, Type deserialiseAs)
         {
@@ -101,7 +116,7 @@ namespace UnitTests
 
         private static Func<byte[], object> GetDecoder<T>(MsgPack5Decoder decoder) => serialised => decoder.Decode<T>(serialised);
 
-        private static (HTMLElement ToDisplay, Action<string> SetStatus, Action<int> SetSuccessCount, Action<int> SetFailureCount) GetRunningSummary(int numberOfTests)
+        private static (HTMLElement ToDisplay, Action<string> SetStatus, Action<int> SetSuccessCount, Action<int> SetFailureCount, Action<int> SetSkippedCount) GetRunningSummary(int numberOfTests, bool showSkippedCount)
         {
             var runningSummary = new HTMLDivElement();
             runningSummary.style.lineHeight = "1.4";
@@ -117,11 +132,15 @@ namespace UnitTests
             var (failureProgress, setFailureCount) = GetProgressLine("Failures");
             runningSummary.appendChild(failureProgress);
 
+            var (skippedProgress, setSkippedCount) = GetProgressLine("Skipped");
+            runningSummary.appendChild(skippedProgress);
+
             return (
                 runningSummary,
                 statusText => status.innerText = statusText,
                 setSuccessCount,
-                setFailureCount
+                setFailureCount,
+                setSkippedCount
             );
 
             (HTMLElement Line, Action<int> SetValue) GetProgressLine(string text)
@@ -144,7 +163,7 @@ namespace UnitTests
             }
         }
 
-        private static HTMLElement GetMessage(string text, bool isSuccess, string additionalInfo = null)
+        private static HTMLElement GetMessage(string text, string hrefIfTextShouldLink, bool isSuccess, string additionalInfo = null)
         {
             var wrapper = new HTMLDivElement();
             wrapper.style.color = "white";
@@ -154,8 +173,20 @@ namespace UnitTests
             wrapper.style.padding = "0.5rem 1rem";
             wrapper.style.marginBottom = "0.5rem";
 
-            var message = new HTMLDivElement { innerText = text };
-            wrapper.appendChild(message);
+            var messageContainer = new HTMLDivElement();
+            wrapper.appendChild(messageContainer);
+
+            HTMLElement message;
+            if (string.IsNullOrWhiteSpace(hrefIfTextShouldLink))
+                message = new HTMLSpanElement();
+            else
+            {
+                message = new HTMLAnchorElement { href = hrefIfTextShouldLink };
+                message.style.color = wrapper.style.color;
+                message.style.textDecoration = "none";
+            }
+            message.innerText = text;
+            messageContainer.appendChild(message);
 
             if (!string.IsNullOrWhiteSpace(additionalInfo))
             {
@@ -183,6 +214,27 @@ namespace UnitTests
                 );
 
                 string JoinSegments(List<string> segments) => string.Join(".", segments);
+            }
+        }
+
+        private static IEnumerable<string> GetAnyTestsSpecifiedInQueryString()
+        {
+            var queryString = document.location.search;
+            if (string.IsNullOrWhiteSpace(queryString))
+                yield break;
+
+            const string startsWith = _testFilterQueryStringName + "=";
+            foreach (var entry in queryString.TrimStart('?').Split('&'))
+            {
+                if (!entry.StartsWith(startsWith, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                foreach (var value in entry.Substring(startsWith.Length).Split(','))
+                {
+                    var unencodedValue = decodeURIComponent(value).Trim();
+                    if (!string.IsNullOrEmpty(unencodedValue))
+                        yield return unencodedValue;
+                }
             }
         }
 
