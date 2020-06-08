@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using MsgPack5.H5;
 using MsgPack5.H5.Tests.SharedTestItems;
-using Newtonsoft.Json;
 using static H5.Core.dom;
 
 namespace UnitTests
@@ -77,12 +76,12 @@ namespace UnitTests
                 var testItem = TestItemInstanceCreator.GetInstance(fullName);
                 var decoder = GetNonGenericDecoder(MsgPack5Decoder.Default, testItem.DeserialiseAs);
                 var clone = decoder(serialised);
-                if (ObjectComparer.AreEqual(testItem.Value, clone))
+                if (ObjectComparer.AreEqual(testItem.Value, clone, out var messageIfNotEqual))
                 {
                     appendResultMessageTo.appendChild(GetMessage(displayName, isSuccess: true));
                     return true;
                 }
-                appendResultMessageTo.appendChild(GetMessage(displayName, isSuccess: false, additionalInfo: $"Expected {JsonConvert.SerializeObject(testItem.Value)} but received {JsonConvert.SerializeObject(testItem.Value)}"));
+                appendResultMessageTo.appendChild(GetMessage(displayName, isSuccess: false, additionalInfo: messageIfNotEqual));
             }
             catch (Exception e)
             {
