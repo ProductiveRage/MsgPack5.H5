@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using MsgPack5.H5;
 using MsgPack5.H5.Tests.SharedTestItems;
@@ -11,27 +12,42 @@ namespace UnitTests
     {
         private static void Main()
         {
+            var allTestItems = TestData.GetItems().ToArray(); // TODO: Try with Take(0), Take(1) and then without to ensure all scenarios ok
+            if (!allTestItems.Any())
+            {
+                document.body.appendChild(GetMessage("There were no tests found to run", isSuccess: false));
+                return;
+            }
+
+            // If the tests all have names that comes from types within a shared namespace then remove that namespace from the names so that the output is less noisy
+            if (allTestItems.Length > 1) // We need at least two tests to find a common namespace!
+            {
+                var testItemsAndNameSegmentsForThem = allTestItems
+                    .Select(testItem => new { NameSegments = testItem.TestItemName.Split('.').ToList(), TestItem = testItem })
+                    .ToList();
+                while (testItemsAndNameSegmentsForThem.All(entry => entry.NameSegments.Count > 1) && (testItemsAndNameSegmentsForThem.Select(entry => entry.NameSegments.First()).Distinct().Count() == 1))
+                {
+                    console.log("Remove: " + testItemsAndNameSegmentsForThem.First().NameSegments.First());
+                    testItemsAndNameSegmentsForThem.ForEach(entry => entry.NameSegments.RemoveAt(0));
+                    console.log("- First now called: " + string.Join(".", testItemsAndNameSegmentsForThem.First().NameSegments));
+                } 
+                allTestItems = testItemsAndNameSegmentsForThem
+                    .OrderBy(entry => entry.NameSegments, TestNameSegmentOrderer.Instance)
+                    .Select(entry => (string.Join(".", entry.NameSegments), entry.TestItem.Serialised))
+                    .ToArray();
+            }
+
             // TODO: Group the Unit Tests into namespaces (and add tests for failure cases)
             // TODO: Maybe show failures first? Or at least a summary at the top to indicate the numbers of successes and failures?
             var successes = new List<string>();
             var failures = new List<string>();
-            foreach (var (testItemName, serialised) in TestData.GetItems())
+            foreach (var (testItemName, serialised) in allTestItems)
             {
-                try
-                {
-                    var testItem = TestItemInstanceCreator.GetInstance(testItemName);
-                    var decoder = GetNonGenericDecoder(MsgPack5Decoder.Default, testItem.DeserialiseAs);
-                    var clone = decoder(serialised);
-                    if (ObjectComparer.AreEqual(testItem.Value, clone))
-                    {
-                        document.body.appendChild(GetMessage(testItemName, isSuccess: true));
-                        successes.Add(testItemName);
-                        continue;
-                    }
-                }
-                catch { }
-                document.body.appendChild(GetMessage(testItemName, isSuccess: true));
-                failures.Add(testItemName);
+                var displayName = testItemName; // TODO: Get this properly
+                if (ExecuteTest(testItemName, displayName, serialised, document.body))
+                    successes.Add(testItemName);
+                else
+                    failures.Add(testItemName);
             }
 
             console.log("Number of successes: " + successes.Count);
@@ -43,6 +59,24 @@ namespace UnitTests
             console.log("Number of failures: " + failures.Count);
             foreach (var name in failures)
                 console.log("- " + name);
+        }
+
+        private static bool ExecuteTest(string fullName, string displayName, byte[] serialised, HTMLElement appendResultMessageTo)
+        {
+            try
+            {
+                var testItem = TestItemInstanceCreator.GetInstance(fullName);
+                var decoder = GetNonGenericDecoder(MsgPack5Decoder.Default, testItem.DeserialiseAs);
+                var clone = decoder(serialised);
+                if (ObjectComparer.AreEqual(testItem.Value, clone))
+                {
+                    appendResultMessageTo.appendChild(GetMessage(fullName, isSuccess: true));
+                    return true;
+                }
+            }
+            catch { }
+            appendResultMessageTo.appendChild(GetMessage(fullName, isSuccess: true));
+            return true;
         }
 
         private static Func<byte[], object> GetNonGenericDecoder(MsgPack5Decoder decoder, Type deserialiseAs)
@@ -67,6 +101,25 @@ namespace UnitTests
             d.style.padding = "0.5rem 1rem";
             d.style.marginBottom = "0.5rem";
             return d;
+        }
+
+        private sealed class TestNameSegmentOrderer : IComparer<List<string>>
+        {
+            public static TestNameSegmentOrderer Instance { get; } = new TestNameSegmentOrderer();
+            private TestNameSegmentOrderer() { }
+
+            public int Compare(List<string> x, List<string> y)
+            {
+                if (x.Count != y.Count)
+                    return Comparer<int>.Default.Compare(x.Count, y.Count);
+
+                return Comparer<string>.Default.Compare(
+                    JoinSegments(x),
+                    JoinSegments(y)
+                );
+
+                string JoinSegments(List<string> segments) => string.Join(".", segments);
+            }
         }
     }
 }
