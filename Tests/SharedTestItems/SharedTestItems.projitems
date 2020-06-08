@@ -11,6 +11,9 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)ConcreteTypeTestItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestByteMax.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestDecimalMax.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestDecimalMin.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestDecimal.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestDoubleMin.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestDoubleMax.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestDouble.cs" />

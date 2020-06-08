@@ -9,6 +9,9 @@ namespace UnitTests
         {
             yield return ("MsgPack5.H5.Tests.SharedTestItems.Primitives.TestByte", new byte[] { 12 });
             yield return ("MsgPack5.H5.Tests.SharedTestItems.Primitives.TestByteMax", new byte[] { 204, 255 });
+            yield return ("MsgPack5.H5.Tests.SharedTestItems.Primitives.TestDecimal", new byte[] { 163, 49, 46, 50 });
+            yield return ("MsgPack5.H5.Tests.SharedTestItems.Primitives.TestDecimalMax", new byte[] { 189, 55, 57, 50, 50, 56, 49, 54, 50, 53, 49, 52, 50, 54, 52, 51, 51, 55, 53, 57, 51, 53, 52, 51, 57, 53, 48, 51, 51, 53 });
+            yield return ("MsgPack5.H5.Tests.SharedTestItems.Primitives.TestDecimalMin", new byte[] { 190, 45, 55, 57, 50, 50, 56, 49, 54, 50, 53, 49, 52, 50, 54, 52, 51, 51, 55, 53, 57, 51, 53, 52, 51, 57, 53, 48, 51, 51, 53 });
             yield return ("MsgPack5.H5.Tests.SharedTestItems.Primitives.TestDouble", new byte[] { 203, 63, 243, 51, 51, 51, 51, 51, 51 });
             yield return ("MsgPack5.H5.Tests.SharedTestItems.Primitives.TestDoubleMax", new byte[] { 203, 127, 239, 255, 255, 255, 255, 255, 255 });
             yield return ("MsgPack5.H5.Tests.SharedTestItems.Primitives.TestDoubleMin", new byte[] { 203, 255, 239, 255, 255, 255, 255, 255, 255 });
