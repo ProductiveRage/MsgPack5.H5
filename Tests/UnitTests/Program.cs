@@ -42,6 +42,10 @@ namespace UnitTests
             var failures = new List<string>();
             foreach (var (testItemName, serialised) in allTestItems)
             {
+                if (testItemName.Contains("TestULongMax"))
+                {
+                    //@debugger; // TODO: Remove
+                }
                 if (ExecuteTest(testItemName, serialised, document.body))
                 {
                     successes.Add(testItemName);
@@ -71,8 +75,8 @@ namespace UnitTests
                 }
             }
             catch { }
-            appendResultMessageTo.appendChild(GetMessage(fullName, isSuccess: true));
-            return true;
+            appendResultMessageTo.appendChild(GetMessage(fullName, isSuccess: false));
+            return false;
         }
 
         private static Func<byte[], object> GetNonGenericDecoder(MsgPack5Decoder decoder, Type deserialiseAs)
