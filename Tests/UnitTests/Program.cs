@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using MsgPack5.H5;
 using MsgPack5.H5.Tests.SharedTestItems;
+using Newtonsoft.Json;
 using static H5.Core.dom;
 
 namespace UnitTests
@@ -13,27 +14,11 @@ namespace UnitTests
     {
         private static async Task Main()
         {
-            (string TestItemName, string DisplayName, byte[] Serialised)[] allTestItems = TestData.GetItems()
-                .Select(item => (item.TestItemName, item.TestItemName, item.Serialised))
-                .ToArray();
+            var allTestItems = GetTestsToRun().ToArray();
             if (!allTestItems.Any())
             {
                 document.body.appendChild(GetMessage("There were no tests found to run", isSuccess: false));
                 return;
-            }
-
-            // If the tests all have names that comes from types within a shared namespace then remove that namespace from the names so that the output is less noisy
-            if (allTestItems.Length > 1) // We need at least two tests to find a common namespace!
-            {
-                var testItemsAndNameSegmentsForThem = allTestItems
-                    .Select(testItem => new { NameSegments = testItem.TestItemName.Split('.').ToList(), TestItem = testItem })
-                    .ToList();
-                while (testItemsAndNameSegmentsForThem.All(entry => entry.NameSegments.Count > 1) && (testItemsAndNameSegmentsForThem.Select(entry => entry.NameSegments.First()).Distinct().Count() == 1))
-                    testItemsAndNameSegmentsForThem.ForEach(entry => entry.NameSegments.RemoveAt(0));
-                allTestItems = testItemsAndNameSegmentsForThem
-                    .OrderBy(entry => entry.NameSegments, TestNameSegmentOrderer.Instance)
-                    .Select(entry => (entry.TestItem.TestItemName, string.Join(".", entry.NameSegments), entry.TestItem.Serialised))
-                    .ToArray();
             }
 
             var (ToDisplay, SetStatus, SetSuccessCount, SetFailureCount) = GetRunningSummary(allTestItems.Length);
@@ -42,25 +27,47 @@ namespace UnitTests
             // TODO: Group the Unit Tests into namespaces (and add tests for failure cases)
             var successes = new List<string>();
             var failures = new List<string>();
-            foreach (var (testItemName, displayName, serialised) in allTestItems)
+            foreach (var testItem in allTestItems)
             {
-                if (testItemName.Contains("TestULongMax"))
+                if (ExecuteTest(testItem.FullName, testItem.DisplayName, testItem.Serialised, document.body))
                 {
-                    //@debugger; // TODO: Remove
-                }
-                if (ExecuteTest(testItemName, displayName, serialised, document.body))
-                {
-                    successes.Add(testItemName);
+                    successes.Add(testItem.DisplayName);
                     SetSuccessCount(successes.Count);
                 }
                 else
                 {
-                    failures.Add(testItemName);
+                    console.log("FAILED: " + testItem.DisplayName); // TODO: Remove
+                    failures.Add(testItem.DisplayName);
                     SetFailureCount(failures.Count);
                 }
                 await Task.Delay(1); // Give the UI a chance to update if there have been tests that don't complete almost instantly
             }
             SetStatus("Completed");
+        }
+
+        private static IEnumerable<TestItem> GetTestsToRun()
+        {
+            var allTestItems = TestData.GetItems()
+                .Select(item => new TestItem { FullName = item.TestItemName, DisplayName = item.TestItemName, Serialised = item.Serialised })
+                .ToArray();
+
+            // If the tests all have names that comes from types within a shared namespace then remove that namespace from the names so that the output is less noisy
+            if (allTestItems.Length < 2) // We need at least two tests to find a common namespace!
+                return allTestItems;
+
+            var testItemsAndNameSegmentsForThem = allTestItems
+                .Select(testItem => new { NameSegments = testItem.FullName.Split('.').ToList(), TestItem = testItem })
+                .ToList();
+            while (testItemsAndNameSegmentsForThem.All(entry => entry.NameSegments.Count > 1) && (testItemsAndNameSegmentsForThem.Select(entry => entry.NameSegments.First()).Distinct().Count() == 1))
+            {
+                testItemsAndNameSegmentsForThem.ForEach(entry => entry.NameSegments.RemoveAt(0));
+            }
+            allTestItems = testItemsAndNameSegmentsForThem
+                .OrderBy(entry => entry.NameSegments, TestNameSegmentOrderer.Instance)
+                .Select(entry => new TestItem { FullName = entry.TestItem.FullName, DisplayName = string.Join(".", entry.NameSegments), Serialised = entry.TestItem.Serialised })
+                .ToArray();
+
+            return allTestItems;
         }
 
         private static bool ExecuteTest(string fullName, string displayName, byte[] serialised, HTMLElement appendResultMessageTo)
@@ -75,9 +82,12 @@ namespace UnitTests
                     appendResultMessageTo.appendChild(GetMessage(displayName, isSuccess: true));
                     return true;
                 }
+                appendResultMessageTo.appendChild(GetMessage(displayName, isSuccess: false, additionalInfo: $"Expected {JsonConvert.SerializeObject(testItem.Value)} but received {JsonConvert.SerializeObject(testItem.Value)}"));
             }
-            catch { }
-            appendResultMessageTo.appendChild(GetMessage(displayName, isSuccess: false));
+            catch (Exception e)
+            {
+                appendResultMessageTo.appendChild(GetMessage(displayName, isSuccess: false, additionalInfo: e.Message));
+            }
             return false;
         }
 
@@ -126,7 +136,6 @@ namespace UnitTests
                 progress.appendChild(label);
 
                 var countWrapper = new HTMLSpanElement();
-                countWrapper.style.textAlign = "right";
                 progress.appendChild(countWrapper);
 
                 var count = new HTMLSpanElement { innerText = "0" };
@@ -137,16 +146,27 @@ namespace UnitTests
             }
         }
 
-        private static HTMLElement GetMessage(string text, bool isSuccess)
+        private static HTMLElement GetMessage(string text, bool isSuccess, string additionalInfo = null)
         {
-            var d = new HTMLDivElement { innerText = text };
-            d.style.color = "white";
-            d.style.backgroundColor = isSuccess ? "#0a0" : "#c00";
-            d.style.border = "1px solid " + (isSuccess ? "#080" : "#900");
-            d.style.borderRadius = "0.25rem";
-            d.style.padding = "0.5rem 1rem";
-            d.style.marginBottom = "0.5rem";
-            return d;
+            var wrapper = new HTMLDivElement();
+            wrapper.style.color = "white";
+            wrapper.style.backgroundColor = isSuccess ? "#0a0" : "#c00";
+            wrapper.style.border = "1px solid " + (isSuccess ? "#080" : "#900");
+            wrapper.style.borderRadius = "0.25rem";
+            wrapper.style.padding = "0.5rem 1rem";
+            wrapper.style.marginBottom = "0.5rem";
+
+            var message = new HTMLDivElement { innerText = text };
+            wrapper.appendChild(message);
+
+            if (!string.IsNullOrWhiteSpace(additionalInfo))
+            {
+                var additionalMessage = new HTMLDivElement { innerText = additionalInfo };
+                additionalMessage.style.fontSize = "0.8rem";
+                wrapper.appendChild(additionalMessage);
+            }
+
+            return wrapper;
         }
 
         private sealed class TestNameSegmentOrderer : IComparer<List<string>>
@@ -166,6 +186,13 @@ namespace UnitTests
 
                 string JoinSegments(List<string> segments) => string.Join(".", segments);
             }
+        }
+
+        private sealed class TestItem
+        {
+            public string FullName { get; set; }
+            public string DisplayName { get; set; }
+            public byte[] Serialised { get; set; }
         }
     }
 }
