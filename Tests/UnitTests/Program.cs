@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using MsgPack5.H5;
 using MsgPack5.H5.Tests.SharedTestItems;
 using static H5.Core.dom;
@@ -10,9 +11,9 @@ namespace UnitTests
 {
     internal static class Program
     {
-        private static void Main()
+        private static async Task Main()
         {
-            var allTestItems = TestData.GetItems().ToArray(); // TODO: Try with Take(0), Take(1) and then without to ensure all scenarios ok
+            var allTestItems = TestData.GetItems().ToArray();
             if (!allTestItems.Any())
             {
                 document.body.appendChild(GetMessage("There were no tests found to run", isSuccess: false));
@@ -37,18 +38,27 @@ namespace UnitTests
                     .ToArray();
             }
 
+            var (ToDisplay, SetStatus, SetSuccessCount, SetFailureCount) = GetRunningSummary(allTestItems.Length);
+            document.body.appendChild(ToDisplay);
+
             // TODO: Group the Unit Tests into namespaces (and add tests for failure cases)
-            // TODO: Maybe show failures first? Or at least a summary at the top to indicate the numbers of successes and failures?
             var successes = new List<string>();
             var failures = new List<string>();
             foreach (var (testItemName, serialised) in allTestItems)
             {
-                var displayName = testItemName; // TODO: Get this properly
-                if (ExecuteTest(testItemName, displayName, serialised, document.body))
+                if (ExecuteTest(testItemName, serialised, document.body))
+                {
                     successes.Add(testItemName);
+                    SetSuccessCount(successes.Count);
+                }
                 else
+                {
                     failures.Add(testItemName);
+                    SetFailureCount(failures.Count);
+                }
+                await Task.Delay(1); // Give the UI a chance to update if there have been tests that don't complete almost instantly
             }
+            SetStatus("Completed");
 
             console.log("Number of successes: " + successes.Count);
             foreach (var name in successes)
@@ -61,7 +71,7 @@ namespace UnitTests
                 console.log("- " + name);
         }
 
-        private static bool ExecuteTest(string fullName, string displayName, byte[] serialised, HTMLElement appendResultMessageTo)
+        private static bool ExecuteTest(string fullName, byte[] serialised, HTMLElement appendResultMessageTo)
         {
             try
             {
@@ -90,6 +100,50 @@ namespace UnitTests
         }
 
         private static Func<byte[], object> GetDecoder<T>(MsgPack5Decoder decoder) => serialised => decoder.Decode<T>(serialised);
+
+        private static (HTMLElement ToDisplay, Action<string> SetStatus, Action<int> SetSuccessCount, Action<int> SetFailureCount) GetRunningSummary(int numberOfTests)
+        {
+            var runningSummary = new HTMLDivElement();
+            runningSummary.style.lineHeight = "1.4";
+            runningSummary.style.margin = "0.5rem";
+
+            var status = new HTMLDivElement { innerText = "Running.." };
+            status.style.fontWeight = "bold";
+            runningSummary.appendChild(status);
+
+            var (successProgress, setSuccessCount) = GetProgressLine("Successes");
+            runningSummary.appendChild(successProgress);
+
+            var (failureProgress, setFailureCount) = GetProgressLine("Failures");
+            runningSummary.appendChild(failureProgress);
+
+            return (
+                runningSummary,
+                statusText => status.innerText = statusText,
+                setSuccessCount,
+                setFailureCount
+            );
+
+            (HTMLElement Line, Action<int> SetValue) GetProgressLine(string text)
+            {
+                var progress = new HTMLDivElement();
+
+                var label = new HTMLSpanElement { innerText = text + ": " };
+                label.style.display = "inline-block";
+                label.style.width = "10rem";
+                progress.appendChild(label);
+
+                var countWrapper = new HTMLSpanElement();
+                countWrapper.style.textAlign = "right";
+                progress.appendChild(countWrapper);
+
+                var count = new HTMLSpanElement { innerText = "0" };
+                countWrapper.appendChild(count);
+                countWrapper.appendChild(new HTMLSpanElement { innerText = " / " + numberOfTests });
+                
+                return (progress, value => count.innerText = value.ToString());
+            }
+        }
 
         private static HTMLElement GetMessage(string text, bool isSuccess)
         {
