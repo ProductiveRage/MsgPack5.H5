@@ -13,7 +13,9 @@ namespace UnitTests
     {
         private static async Task Main()
         {
-            var allTestItems = TestData.GetItems().ToArray();
+            (string TestItemName, string DisplayName, byte[] Serialised)[] allTestItems = TestData.GetItems()
+                .Select(item => (item.TestItemName, item.TestItemName, item.Serialised))
+                .ToArray();
             if (!allTestItems.Any())
             {
                 document.body.appendChild(GetMessage("There were no tests found to run", isSuccess: false));
@@ -30,7 +32,7 @@ namespace UnitTests
                     testItemsAndNameSegmentsForThem.ForEach(entry => entry.NameSegments.RemoveAt(0));
                 allTestItems = testItemsAndNameSegmentsForThem
                     .OrderBy(entry => entry.NameSegments, TestNameSegmentOrderer.Instance)
-                    .Select(entry => (string.Join(".", entry.NameSegments), entry.TestItem.Serialised))
+                    .Select(entry => (entry.TestItem.TestItemName, string.Join(".", entry.NameSegments), entry.TestItem.Serialised))
                     .ToArray();
             }
 
@@ -40,13 +42,13 @@ namespace UnitTests
             // TODO: Group the Unit Tests into namespaces (and add tests for failure cases)
             var successes = new List<string>();
             var failures = new List<string>();
-            foreach (var (testItemName, serialised) in allTestItems)
+            foreach (var (testItemName, displayName, serialised) in allTestItems)
             {
                 if (testItemName.Contains("TestULongMax"))
                 {
                     //@debugger; // TODO: Remove
                 }
-                if (ExecuteTest(testItemName, serialised, document.body))
+                if (ExecuteTest(testItemName, displayName, serialised, document.body))
                 {
                     successes.Add(testItemName);
                     SetSuccessCount(successes.Count);
@@ -61,7 +63,7 @@ namespace UnitTests
             SetStatus("Completed");
         }
 
-        private static bool ExecuteTest(string fullName, byte[] serialised, HTMLElement appendResultMessageTo)
+        private static bool ExecuteTest(string fullName, string displayName, byte[] serialised, HTMLElement appendResultMessageTo)
         {
             try
             {
@@ -70,12 +72,12 @@ namespace UnitTests
                 var clone = decoder(serialised);
                 if (ObjectComparer.AreEqual(testItem.Value, clone))
                 {
-                    appendResultMessageTo.appendChild(GetMessage(fullName, isSuccess: true));
+                    appendResultMessageTo.appendChild(GetMessage(displayName, isSuccess: true));
                     return true;
                 }
             }
             catch { }
-            appendResultMessageTo.appendChild(GetMessage(fullName, isSuccess: false));
+            appendResultMessageTo.appendChild(GetMessage(displayName, isSuccess: false));
             return false;
         }
 
