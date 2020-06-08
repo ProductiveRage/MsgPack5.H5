@@ -27,11 +27,7 @@ namespace UnitTests
                     .Select(testItem => new { NameSegments = testItem.TestItemName.Split('.').ToList(), TestItem = testItem })
                     .ToList();
                 while (testItemsAndNameSegmentsForThem.All(entry => entry.NameSegments.Count > 1) && (testItemsAndNameSegmentsForThem.Select(entry => entry.NameSegments.First()).Distinct().Count() == 1))
-                {
-                    console.log("Remove: " + testItemsAndNameSegmentsForThem.First().NameSegments.First());
                     testItemsAndNameSegmentsForThem.ForEach(entry => entry.NameSegments.RemoveAt(0));
-                    console.log("- First now called: " + string.Join(".", testItemsAndNameSegmentsForThem.First().NameSegments));
-                } 
                 allTestItems = testItemsAndNameSegmentsForThem
                     .OrderBy(entry => entry.NameSegments, TestNameSegmentOrderer.Instance)
                     .Select(entry => (string.Join(".", entry.NameSegments), entry.TestItem.Serialised))
@@ -59,16 +55,6 @@ namespace UnitTests
                 await Task.Delay(1); // Give the UI a chance to update if there have been tests that don't complete almost instantly
             }
             SetStatus("Completed");
-
-            console.log("Number of successes: " + successes.Count);
-            foreach (var name in successes)
-                console.log("- " + name);
-
-            console.log();
-
-            console.log("Number of failures: " + failures.Count);
-            foreach (var name in failures)
-                console.log("- " + name);
         }
 
         private static bool ExecuteTest(string fullName, byte[] serialised, HTMLElement appendResultMessageTo)
