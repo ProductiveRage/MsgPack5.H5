@@ -1,28 +1,17 @@
 ﻿using System;
 using System.Text;
+using static H5.Core.es5;
 
 namespace MsgPack5.H5
 {
-    public sealed class ByteArrayBackedBuffer : IBuffer
+    public abstract class ByteArrayBackedBuffer : IBuffer
     {
-        private readonly byte[] _data;
-        private uint _position;
-        public ByteArrayBackedBuffer(byte[] data)
-        {
-            _data = data ?? throw new ArgumentNullException(nameof(data));
-            _position = 0;
-        }
+        protected uint _position;
+        protected ByteArrayBackedBuffer() => _position = 0;
 
-        public uint Length => (uint)_data.Length - _position;
+        public abstract uint Length { get; }
 
-        public byte this[uint offset]
-        {
-            get
-            {
-                CheckPosition(numberOfBytesRequired: 1);
-                return (byte)_data.GetValue((int)(offset + _position));
-            }
-        }
+        public abstract byte this[uint offset] { get; }
 
         public void Consume(uint numberOfBytes)
         {
@@ -30,21 +19,11 @@ namespace MsgPack5.H5
             _position += numberOfBytes;
         }
 
-        public byte[] Slice(uint start, uint size)
-        {
-            CheckPosition(numberOfBytesRequired: size);
-            var slice = new byte[size];
-            Array.Copy(src: _data, spos: start + _position, dst: slice, dpos: 0, len: size);
-            return slice;
-        }
+        public abstract Uint8Array Slice(uint start, uint size);
 
-        public IBuffer SliceAsBuffer(uint start, uint size) => new ByteArrayBackedBuffer(Slice(start, size));
+        public abstract IBuffer SliceAsBuffer(uint start, uint size);
 
-        public sbyte ReadInt8(uint offset)
-        {
-            CheckPosition(numberOfBytesRequired: 1);
-            return (sbyte)_data[offset];
-        }
+        public abstract sbyte ReadInt8(uint offset);
 
         public byte ReadUInt8(uint offset) => (byte)ReadInt8(offset);
 
@@ -63,6 +42,26 @@ namespace MsgPack5.H5
         }
 
         public uint ReadUInt32BE(uint offset) => (uint)ReadInt32BE(offset);
+
+        public long ReadInt64BE(uint offset)
+        {
+            var bytes = Slice(offset, size: 8);
+            var negate = (bytes[0] & 0x80) == 0x80;
+            if (negate)
+            {
+                var carry = 1;
+                for (uint i = 0; i < 8; i++)
+                {
+                    var indexIntoBytes = 7 - i;
+                    var v = (bytes[indexIntoBytes] ^ 0xff) + carry;
+                    bytes[indexIntoBytes] = (byte)(v & 0xff);
+                    carry = v >> 8;
+                }
+            }
+            var hi = ReadUInt32BE(offset);
+            var lo = ReadUInt32BE(offset + 4);
+            return (hi * 4294967296 + lo) * (negate ? -1 : 1);
+        }
 
         public float ReadFloatBE(uint offset)
         {
@@ -98,7 +97,7 @@ namespace MsgPack5.H5
                 bytes[6] = b1;
                 bytes[7] = b0;
             }
-            return BitConverter.ToDouble(bytes, 0);
+            return BitConverter.ToDouble(bytes.FreeCastToByteArray(), 0);
         }
 
         public uint ReadUIntBE(uint offset, uint size)
@@ -112,9 +111,9 @@ namespace MsgPack5.H5
             throw new InvalidOperationException("Invalid UIntBE size (only support 1, 2, 4): " + size);
         }
 
-        public string ReadUTF8String(uint start, uint size) => Encoding.UTF8.GetString(Slice(start, size));
+        public string ReadUTF8String(uint start, uint size) => Encoding.UTF8.GetString(Slice(start, size).FreeCastToByteArray());
 
-        private void CheckPosition(uint numberOfBytesRequired)
+        protected void CheckPosition(uint numberOfBytesRequired)
         {
             if (Length < numberOfBytesRequired)
                 throw new InvalidOperationException("Attempt to read past end of content");

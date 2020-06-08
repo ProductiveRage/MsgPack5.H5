@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using static H5.Core.es5;
 
 namespace MsgPack5.H5
 {
@@ -14,7 +15,7 @@ namespace MsgPack5.H5
         private readonly Func<sbyte, Decoder> _customDecoderLookup;
         public MsgPack5Decoder(Func<sbyte, Decoder> customDecoderLookup = null) => _customDecoderLookup = customDecoderLookup;
 
-        public T Decode<T>(byte[] data) => Decode<T>(new ByteArrayBackedBuffer(data ?? throw new ArgumentNullException(nameof(data))));
+        public T Decode<T>(byte[] data) => Decode<T>(new Uint8ArrayBackedBuffer(new Uint8Array(data ?? throw new ArgumentNullException(nameof(data)))));
 
         public T Decode<T>(IBuffer buf)
         {
@@ -194,27 +195,8 @@ namespace MsgPack5.H5
             if (size == 4)
                 return new DecodeResult(buf.ReadInt32BE(offset), size + 1);
             if (size == 8)
-                return new DecodeResult(ReadInt64BE(buf.Slice(offset, size: 8)), size + 1);
+                return new DecodeResult(buf.ReadInt64BE(offset), size + 1);
             throw new InvalidOperationException("Invalid size for reading signed integer: " + size);
-        }
-
-        private static long ReadInt64BE(byte[] bytes)
-        {
-            var negate = (bytes[0] & 0x80) == 0x80;
-            if (negate)
-            {
-                var carry = 1;
-                for (var i = 7; i >= 0; i--)
-                {
-                    var v = (bytes[i] ^ 0xff) + carry;
-                    bytes[i] = (byte)(v & 0xff);
-                    carry = v >> 8;
-                }
-            }
-            var buf = new ByteArrayBackedBuffer(bytes);
-            var hi = buf.ReadUInt32BE(0);
-            var lo = buf.ReadUInt32BE(4);
-            return (hi * 4294967296 + lo) * (negate ? -1 : 1);
         }
 
         private static DecodeResult DecodeUnsignedInt(IBuffer buf, uint offset, uint size)
@@ -223,7 +205,7 @@ namespace MsgPack5.H5
             ulong result = 0;
             while (offset < maxOffset)
             {
-                result += buf.ReadUInt8(offset++) * (ulong)Math.Pow(256, (int)(maxOffset - offset));
+                result += buf.ReadUInt8(offset++) * (ulong)System.Math.Pow(256, (int)(maxOffset - offset));
             }
             return new DecodeResult(result, size + 1);
         }

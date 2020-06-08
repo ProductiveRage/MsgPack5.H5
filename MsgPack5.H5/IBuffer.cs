@@ -1,4 +1,6 @@
-﻿namespace MsgPack5.H5
+﻿using static H5.Core.es5;
+
+namespace MsgPack5.H5
 {
     public interface IBuffer
     {
@@ -8,7 +10,7 @@
 
         void Consume(uint numberOfBytes);
 
-        byte[] Slice(uint start, uint size);
+        Uint8Array Slice(uint start, uint size);
         IBuffer SliceAsBuffer(uint start, uint size);
 
         sbyte ReadInt8(uint offset);
@@ -17,6 +19,7 @@
         ushort ReadUInt16BE(uint offset);
         int ReadInt32BE(uint offset);
         uint ReadUInt32BE(uint offset);
+        long ReadInt64BE(uint offset);
         float ReadFloatBE(uint offset);
         double ReadDoubleBE(uint offset);
 
