@@ -76,7 +76,8 @@ namespace MsgPack5.H5
                 bytes[2] = b1;
                 bytes[3] = b0;
             }
-            return BitConverter.ToSingle(bytes, 0);
+            var value = BitConverter.ToSingle(bytes.FreeCastToByteArray(), 0);
+            return float.Parse(((float)value).ToString()); // 2020-06-08 DWR: BitConverter.ToSingle has a bug in Bridge/H5 where it will return a number with incorrect precision but we can force it to the correct one by rendering as a string and re-parsing (which feels expensive but I give up)
         }
 
         public double ReadDoubleBE(uint offset)
