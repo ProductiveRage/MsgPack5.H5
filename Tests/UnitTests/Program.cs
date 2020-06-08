@@ -35,7 +35,6 @@ namespace UnitTests
                 }
                 else
                 {
-                    console.log("FAILED: " + testItem.DisplayName); // TODO: Remove
                     failures.Add(testItem.DisplayName);
                     SetFailureCount(failures.Count);
                 }

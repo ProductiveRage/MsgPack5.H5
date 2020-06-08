@@ -15,6 +15,8 @@ namespace MsgPack5.H5
         private readonly Func<sbyte, Decoder> _customDecoderLookup;
         public MsgPack5Decoder(Func<sbyte, Decoder> customDecoderLookup = null) => _customDecoderLookup = customDecoderLookup;
 
+        public T Decode<T>(Uint8Array data) => Decode<T>(new Uint8ArrayBackedBuffer(data ?? throw new ArgumentNullException(nameof(data))));
+        public T Decode<T>(ArrayBuffer data) => Decode<T>(new Uint8ArrayBackedBuffer(new Uint8Array(data ?? throw new ArgumentNullException(nameof(data)))));
         public T Decode<T>(byte[] data) => Decode<T>(new Uint8ArrayBackedBuffer(new Uint8Array(data ?? throw new ArgumentNullException(nameof(data)))));
 
         public T Decode<T>(IBuffer buf)
