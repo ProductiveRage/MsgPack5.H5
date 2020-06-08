@@ -37,6 +37,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestFloat.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestInt.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Primitives\TestByte.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestNullableIntWithValue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestNullableIntWithNoValue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestNullableDateTimeWithNoValue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestNullableDateTimeWithValue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestDateTimeTopPrecision.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestDateTimeMidPrecision.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestLongerString.cs" />
