@@ -39,7 +39,7 @@ namespace UnitTests
                     skipped.Add(testItem);
                     SetSkippedCount(successes.Count);
                 }
-                else if (ExecuteTest(testItem.FullName, testItem.DisplayName, testItem.Serialised, document.body))
+                else if (ExecuteTest(testItem.FullName, testItem.DisplayName, testItem.Serialised, showFullErrorStackTraceForFailures: testNamesToFilterTo.Any(), document.body))
                 {
                     successes.Add(testItem);
                     SetSuccessCount(successes.Count);
@@ -79,7 +79,7 @@ namespace UnitTests
             return allTestItems;
         }
 
-        private static bool ExecuteTest(string fullName, string displayName, byte[] serialised, HTMLElement appendResultMessageTo)
+        private static bool ExecuteTest(string fullName, string displayName, byte[] serialised, bool showFullErrorStackTraceForFailures, HTMLElement appendResultMessageTo)
         {
             try
             {
@@ -95,7 +95,7 @@ namespace UnitTests
             }
             catch (Exception e)
             {
-                appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: e.Message));
+                appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: showFullErrorStackTraceForFailures ? e.ToString() : e.Message));
             }
             return false;
         }
