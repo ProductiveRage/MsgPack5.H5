@@ -2,6 +2,7 @@
 
 namespace MsgPack5.H5
 {
+    // Logic here courtesy of https://github.com/neuecc/MessagePack-CSharp
     internal sealed class DateTimeDecoder
     {
         private static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
