@@ -39,8 +39,16 @@ namespace MsgPack5.H5
             if (typeof(T).IsAssignableFrom(value.GetType()))
                 return (T)value;
 
+            // If the target type is a nullable and the value isn't null (which we know it isn't, since that was checked for at the top of this method) then get the inner type of the nullable and try to cast the value to THAT because
+            // trying to cast a byte to a Nullable<int> will fail but casting a byte to an int will succeed and then we can cast THAT to Nullable<int> and all will be well
+            Type changeTo;
+            if (typeof(T).IsGenericType && (typeof(T).GetGenericTypeDefinition() == typeof(Nullable<>)))
+                changeTo = typeof(T).GetGenericArguments()[0];
+            else
+                changeTo = typeof(T);
+
             // Try this - it will cover the cases of where a byte value was read (because it was a small number) but an int was expected
-            return (T)Convert.ChangeType(value, typeof(T));
+            return (T)Convert.ChangeType(value, changeTo);
         }
 
         private DecodeResult Decode(IBuffer buf, uint initialOffset, Type expectedType)
