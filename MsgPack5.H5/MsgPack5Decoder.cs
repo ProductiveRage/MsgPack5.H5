@@ -31,6 +31,10 @@ namespace MsgPack5.H5
             // If the value is null then there's not much we can hopefully - hopefully it's a reference type (which will be fine) or it's a value type with an operator that can handle null (if not, it's correct to fail)
             if (value is null)
             {
+                // TODO [2020-07-24 DWR]: This is a simple check to handle some obvious fail cases - I need to investigate more whether MessagePack supports casting null to other Value Types, perhaps via static operators
+                if (typeof(T).IsPrimitive)
+                    throw new MessagePackSerializationException($"Failed to deserialize {typeof(T).FullName} value.");
+
                 // TODO: More specific error if the cast fails?
                 return (T)value;
             }

@@ -9,6 +9,7 @@
     <Import_RootNamespace>MsgPack5.H5.Tests.SharedTestItems</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Failures\DeserialiseNullIntoInt.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\SuccessTestItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestByteMax.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestDecimalMax.cs" />

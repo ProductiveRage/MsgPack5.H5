@@ -28,7 +28,7 @@ namespace UnitTests
             var (ToDisplay, SetStatus, SetSuccessCount, SetFailureCount, SetSkippedCount) = GetRunningSummary(allTestItems.Length, showSkippedCount: testNamesToFilterTo.Any());
             document.body.appendChild(ToDisplay);
 
-            // TODO: Group the Unit Tests into namespaces (and add tests for failure cases)
+            // TODO: Group the Unit Tests into namespaces
             var skipped = new List<TestItem>();
             var successes = new List<TestItem>();
             var failures = new List<TestItem>();
@@ -39,7 +39,7 @@ namespace UnitTests
                     skipped.Add(testItem);
                     SetSkippedCount(successes.Count);
                 }
-                else if (ExecuteTest(testItem.FullName, testItem.DisplayName, testItem.Serialised, showFullErrorStackTraceForFailures: testNamesToFilterTo.Any(), document.body))
+                else if (ExecuteTest(testItem.FullName, testItem.DisplayName, testItem.Serialised, testItem.ExpectedError, showFullErrorStackTraceForFailures: testNamesToFilterTo.Any(), document.body))
                 {
                     successes.Add(testItem);
                     SetSuccessCount(successes.Count);
@@ -57,7 +57,7 @@ namespace UnitTests
         private static IEnumerable<TestItem> GetTestsToRun()
         {
             var allTestItems = TestData.GetItems()
-                .Select(item => new TestItem { FullName = item.TestItemName, DisplayName = item.TestItemName, Serialised = item.Serialised })
+                .Select(item => new TestItem(item.TestItemName, item.TestItemName, item.Serialised, item.ExpectedError))
                 .ToArray();
 
             // If the tests all have names that comes from types within a shared namespace then remove that namespace from the names so that the output is less noisy
@@ -73,25 +73,52 @@ namespace UnitTests
             }
             allTestItems = testItemsAndNameSegmentsForThem
                 .OrderBy(entry => entry.NameSegments, TestNameSegmentOrderer.Instance)
-                .Select(entry => new TestItem { FullName = entry.TestItem.FullName, DisplayName = string.Join(".", entry.NameSegments), Serialised = entry.TestItem.Serialised })
+                .Select(entry => entry.TestItem.WithDisplayName(string.Join(".", entry.NameSegments)))
                 .ToArray();
 
             return allTestItems;
         }
 
-        private static bool ExecuteTest(string fullName, string displayName, byte[] serialised, bool showFullErrorStackTraceForFailures, HTMLElement appendResultMessageTo)
+        private static bool ExecuteTest(string fullName, string displayName, byte[] serialised, ExceptionSummary expectedError, bool showFullErrorStackTraceForFailures, HTMLElement appendResultMessageTo)
         {
             try
             {
                 var testItem = TestItemInstanceCreator.GetInstance(fullName);
                 var decoder = GetNonGenericDecoder(MsgPack5Decoder.Default, testItem.DeserialiseAs);
-                var clone = decoder(serialised);
-                if (ObjectComparer.AreEqual(testItem.Value, clone, out var messageIfNotEqual))
+                if (expectedError is null)
                 {
-                    appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: true));
-                    return true;
+                    var clone = decoder(serialised);
+                    if (ObjectComparer.AreEqual(testItem.Value, clone, out var messageIfNotEqual))
+                    {
+                        appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: true));
+                        return true;
+                    }
+                    appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: messageIfNotEqual));
                 }
-                appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: messageIfNotEqual));
+                else
+                {
+                    try
+                    {
+                        decoder(serialised);
+                        appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: "No exception was thrown but expected: " + expectedError.ExceptionType.FullName));
+                        return false;
+                    }
+                    catch (Exception deserialisationException)
+                    {
+                        if (deserialisationException.GetType() != expectedError.ExceptionType)
+                        {
+                            appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: $"Expected exception {expectedError.ExceptionType.FullName} but {deserialisationException.GetType().FullName} was thrown"));
+                            return false;
+                        }
+                        if (deserialisationException.Message != expectedError.Message)
+                        {
+                            appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: $"Expected exception message \"{expectedError.Message}\" but received \"{deserialisationException.Message}\""));
+                            return false;
+                        }
+                        appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: true));
+                        return true;
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -240,9 +267,20 @@ namespace UnitTests
 
         private sealed class TestItem
         {
+            public TestItem(string fullName, string displayName, byte[] serialised, ExceptionSummary expectedError)
+            {
+                FullName = !string.IsNullOrWhiteSpace(fullName) ? fullName : throw new ArgumentException("may not be null, blank or whitespace-only", nameof(fullName));
+                DisplayName = !string.IsNullOrWhiteSpace(displayName) ? displayName : throw new ArgumentException("may not be null, blank or whitespace-only", nameof(displayName));
+                Serialised = serialised ?? throw new ArgumentNullException(nameof(serialised));
+                ExpectedError = expectedError;
+            }
+
             public string FullName { get; set; }
             public string DisplayName { get; set; }
             public byte[] Serialised { get; set; }
+            public ExceptionSummary ExpectedError { get; set; }
+
+            public TestItem WithDisplayName(string displayName) => new TestItem(FullName, displayName, Serialised, ExpectedError);
         }
     }
 }

@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="MessagePack" Version="2.1.115" />
+    <PackageReference Include="System.CodeDom" Version="4.7.0" />
   </ItemGroup>
 
 </Project>
