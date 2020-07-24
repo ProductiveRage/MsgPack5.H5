@@ -1,7 +1,4 @@
 ﻿using System.Collections.Generic;
-#if !H5
-using MessagePack;
-#endif
 
 namespace MessagePack.Tests.SharedTypes
 {

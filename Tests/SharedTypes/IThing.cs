@@ -1,8 +1,4 @@
-﻿#if !H5
-using MessagePack;
-#endif
-
-namespace MessagePack.Tests.SharedTypes
+﻿namespace MessagePack.Tests.SharedTypes
 {
     [Union(0, typeof(Thing0))]
     [Union(1, typeof(Thing1))]

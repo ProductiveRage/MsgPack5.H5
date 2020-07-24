@@ -6,13 +6,8 @@ namespace UnitTests
     {
         public static Type Get(string typeName)
         {
-            // TODO [2020-07-24 DWR]: Implement this properly (probably makes sense to change the "MsgPack.H5" namespace to "MessagePack")
-
-            const string ifStartsWith = "MessagePack.";
-            const string thenReplaceWith = "MsgPack5.H5.";
-            if (typeName.StartsWith(ifStartsWith))
-                typeName = thenReplaceWith + typeName.Substring(ifStartsWith.Length);
-
+            // 2020-07-24 DWR: This MAY need more work in the future but it seemes to work for now (in .NET, Type.GetType will only load types from the currently-executing assembly or from a core library unless the assembly name is specified, which isn't
+            // done in the test data here, but this seems happy to load types from the main library assembly into this unit test assembly and so the difference in this behaviour between H5 and .NET works in my favour right now)
             return Type.GetType(typeName) ?? throw new Exception("Unable to retrieve type: " + typeName);
         }
     }

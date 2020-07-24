@@ -1,8 +1,4 @@
-﻿#if !H5
-using MessagePack;
-#endif
-
-namespace MessagePack.Tests.SharedTypes
+﻿namespace MessagePack.Tests.SharedTypes
 {
     [MessagePackObject]
     public class SomethingWithKeyAndID // Note: Must be public (not internal) to work with MessagePack
