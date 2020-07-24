@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MsgPack5.H5.Tests.SharedTestItems.Successes
+namespace MessagePack.Tests.SharedTestItems.Successes
 {
     /// <summary>
     /// This is a date time that will require the largest of the three formats - it's still within a reasonable range but it has a higher precision

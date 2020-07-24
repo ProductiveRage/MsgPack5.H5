@@ -6,7 +6,7 @@
     <SharedGUID>8a8a0bff-9af4-4ca6-a539-2f116e7f248c</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>MsgPack5.H5.Tests.SharedTypes</Import_RootNamespace>
+    <Import_RootNamespace>MessagePack.Tests.SharedTypes</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)SomethingWithKeyAndID.cs" />

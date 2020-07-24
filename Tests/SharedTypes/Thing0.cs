@@ -2,7 +2,7 @@
 using MessagePack;
 #endif
 
-namespace MsgPack5.H5.Tests.SharedTypes
+namespace MessagePack.Tests.SharedTypes
 {
     [MessagePackObject]
     public sealed class Thing0 : IThing // Note: Must be public (not internal) to work with MessagePack

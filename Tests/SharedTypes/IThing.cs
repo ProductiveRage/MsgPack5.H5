@@ -2,7 +2,7 @@
 using MessagePack;
 #endif
 
-namespace MsgPack5.H5.Tests.SharedTypes
+namespace MessagePack.Tests.SharedTypes
 {
     [Union(0, typeof(Thing0))]
     [Union(1, typeof(Thing1))]

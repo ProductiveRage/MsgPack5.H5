@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using static H5.Core.es5;
 
-namespace MsgPack5.H5
+namespace MessagePack
 {
     public sealed class MsgPack5Decoder
     {

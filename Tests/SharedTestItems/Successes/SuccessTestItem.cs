@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MsgPack5.H5.Tests.SharedTestItems.Successes
+namespace MessagePack.Tests.SharedTestItems.Successes
 {
     /// <summary>
     /// Use this base class to test a simple round trip where a value is serialised as one type and deserialised to that same type

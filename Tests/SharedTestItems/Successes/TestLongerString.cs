@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace MsgPack5.H5.Tests.SharedTestItems.Successes
+namespace MessagePack.Tests.SharedTestItems.Successes
 {
     internal sealed class TestLongerString : SuccessTestItem<string>
     {

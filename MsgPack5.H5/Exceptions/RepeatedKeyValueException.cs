@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace MsgPack5.H5
+namespace MessagePack
 {
     /// <summary>
     /// This will be thrown if a type that is to be deserialised that is identified as a MessagePackObject has the same Key attribute index value assigned to multiple properties and/or fields

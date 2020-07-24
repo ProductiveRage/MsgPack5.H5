@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MsgPack5.H5
+namespace MessagePack
 {
     /// <summary>
     /// This will be thrown if the end of the content was reached before the it was expected - generally indicating corrupted / truncated data

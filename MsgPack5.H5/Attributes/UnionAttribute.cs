@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MsgPack5.H5
+namespace MessagePack
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true, Inherited = false)]
     public sealed class UnionAttribute : Attribute

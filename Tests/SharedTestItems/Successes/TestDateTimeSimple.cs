@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MsgPack5.H5.Tests.SharedTestItems.Successes
+namespace MessagePack.Tests.SharedTestItems.Successes
 {
     /// <summary>
     /// This is a date time that it should be possible to serialise in the most succinct manner (it's in a reasonable range and it has relatively low precision - no nanosecond values)

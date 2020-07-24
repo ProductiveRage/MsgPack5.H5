@@ -1,4 +1,4 @@
-﻿namespace MsgPack5.H5.Tests.SharedTestItems.Successes.Primitives
+﻿namespace MessagePack.Tests.SharedTestItems.Successes.Primitives
 {
     internal sealed class TestDouble : SuccessTestItem<double>
     {

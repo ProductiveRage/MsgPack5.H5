@@ -1,7 +1,7 @@
 ﻿using System;
-using MsgPack5.H5.Tests.SharedTypes;
+using MessagePack.Tests.SharedTypes;
 
-namespace MsgPack5.H5.Tests.SharedTestItems.Successes
+namespace MessagePack.Tests.SharedTestItems.Successes
 {
     internal sealed class TestThing0AsInterface : SuccessTestItem<IThing>
     {

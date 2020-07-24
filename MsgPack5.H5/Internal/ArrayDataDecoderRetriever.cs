@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using H5;
 
-namespace MsgPack5.H5
+namespace MessagePack
 {
     internal static class ArrayDataDecoderRetriever
     {

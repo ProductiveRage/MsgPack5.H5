@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MsgPack5.H5
+namespace MessagePack
 {
     // Logic here courtesy of https://github.com/neuecc/MessagePack-CSharp
     internal sealed class DateTimeDecoder

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MsgPack5.H5.Tests.SharedTestItems
+namespace MessagePack.Tests.SharedTestItems
 {
     internal interface ITestItem
     {

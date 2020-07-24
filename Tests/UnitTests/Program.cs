@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using MsgPack5.H5;
-using MsgPack5.H5.Tests.SharedTestItems;
+using MessagePack;
+using MessagePack.Tests.SharedTestItems;
 using static H5.Core.dom;
 using static H5.Core.es5;
 

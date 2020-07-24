@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace MsgPack5.H5
+namespace MessagePack
 {
     /// <summary>
     /// This will be thrown if a member is encountered on a type that is to be deserialised that is identified as a MessagePackObject but that member has neither a Key nor IgnoreMember attribute on it

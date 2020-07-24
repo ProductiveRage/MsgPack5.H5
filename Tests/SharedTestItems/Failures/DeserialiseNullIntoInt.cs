@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MsgPack5.H5.Tests.SharedTestItems.Failures
+namespace MessagePack.Tests.SharedTestItems.Failures
 {
     internal sealed class DeserialiseNullIntoInt : ITestItem
     {

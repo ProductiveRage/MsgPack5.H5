@@ -1,6 +1,6 @@
 ﻿using static H5.Core.es5;
 
-namespace MsgPack5.H5
+namespace MessagePack
 {
     public interface IBuffer
     {

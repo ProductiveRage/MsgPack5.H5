@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>MsgPack5.H5</AssemblyName>
-    <RootNamespace>MsgPack5.H5</RootNamespace>
+    <AssemblyName>MessagePack</AssemblyName>
+    <RootNamespace>MessagePack</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
