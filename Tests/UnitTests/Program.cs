@@ -94,7 +94,7 @@ namespace UnitTests
             try
             {
                 var testItem = TestItemInstanceCreator.GetInstance(fullName);
-                var decoder = GetNonGenericDecoder(MsgPack5Decoder.Default, testItem.DeserialiseAs);
+                var decoder = GetTypedMessagePackSerializerDeserializeCall(testItem.DeserialiseAs);
                 if (expectedError is null)
                 {
                     var clone = decoder(serialised);
@@ -140,17 +140,18 @@ namespace UnitTests
         private static string GetHrefForFilteringToTest(string displayName) => $"?{_testFilterQueryStringName}={encodeURIComponent(displayName)}";
         private static string GetHrefForDisablingFiltering() => window.location.href.Split('?')[0];
 
-        private static Func<byte[], object> GetNonGenericDecoder(MsgPack5Decoder decoder, Type deserialiseAs)
+        private static Func<byte[], object> GetTypedMessagePackSerializerDeserializeCall(Type deserialiseAs)
         {
-            var unboundGetDecoderMethod = typeof(Program).GetMethod(nameof(GetDecoder), BindingFlags.Static | BindingFlags.NonPublic, parameterTypes: new[] { typeof(MsgPack5Decoder) });
-            if (unboundGetDecoderMethod is null)
-                throw new Exception("Internal error while trying to retrieve method to form a non-generic Decode call for unit test - this shouldn't be possible");
+            var unboundDeserializeMethod = typeof(MessagePackSerializer).GetMethod(nameof(MessagePackSerializer.Deserialize), BindingFlags.Static | BindingFlags.Public, parameterTypes: new[] { typeof(byte[]) });
+            if (unboundDeserializeMethod is null)
+                throw new Exception("Internal error while trying to retrieve method to form a non-generic MessagePackSerializer.Deserialize call for unit test - this shouldn't be possible");
 
-            var getDecoderMethod = unboundGetDecoderMethod.MakeGenericMethod(deserialiseAs);
-            return (Func<byte[], object>)getDecoderMethod.Invoke(null, new[] { decoder });
+            var deserializeMethod = unboundDeserializeMethod.MakeGenericMethod(deserialiseAs);
+            return serialised =>
+            {
+                return deserializeMethod.Invoke(null, serialised);
+            };
         }
-
-        private static Func<byte[], object> GetDecoder<T>(MsgPack5Decoder decoder) => serialised => decoder.Decode<T>(serialised);
 
         private static (HTMLElement ToDisplay, Action<string> SetStatus, Action<int> SetSuccessCount, Action<int> SetFailureCount, Action<int> SetSkippedCount) GetRunningSummary(int numberOfTests, bool showSkippedCount)
         {
