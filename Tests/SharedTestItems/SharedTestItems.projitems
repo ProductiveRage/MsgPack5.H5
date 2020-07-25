@@ -9,6 +9,7 @@
     <Import_RootNamespace>MessagePack.Tests.SharedTestItems</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Failures\MultipleClassWithMultipleSerializationConstructors.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\MissingMessagePackObjectAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\MissingKeyAttributeInDestinationType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\RepeatedTypesInDestinationType.cs" />

@@ -63,7 +63,12 @@ namespace MessagePack
             // TODO: Look for [SerializationConstructor] constructor - no ambiguity, then! (TODO: Have to be public?)
             var attributeConstructors = expectedType.GetConstructors().Where(c => c.GetCustomAttributes(typeof(SerializationConstructorAttribute)).Any()).ToArray();
             if (attributeConstructors.Length > 1)
-                throw new Exception("Multiple [SerializationConstructor] constructors"); // TODO: More specialised exception type
+            {
+                throw new MessagePackSerializationException(
+                    $"Failed to deserialize {expectedType.FullName} value.",
+                    new TypeWithMultipleSerializationConstructorsException(expectedType)
+                );
+            }
             else if (attributeConstructors.Length == 1)
             {
                 // TODO: Something
