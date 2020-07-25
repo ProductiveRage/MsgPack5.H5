@@ -7,7 +7,7 @@ namespace MessagePack.Tests.SharedTestItems.Successes
     {
         public TestLongerString() : base(Repeat(UpperCaseAlphabetString, 100)) { }
 
-        private static readonly string UpperCaseAlphabetString = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        private const string UpperCaseAlphabetString = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
         private static string Repeat(string value, uint repetitions)
         {
