@@ -1,7 +1,7 @@
 ﻿namespace MessagePack.Tests.SharedTypes
 {
     [MessagePackObject]
-    public class SomethingWithKeyAndID // Note: Must be public (not internal) to work with MessagePack
+    public class ClassWithStringAndIntPropertiesWithNoInterface // Note: Must be public (not internal) to work with MessagePack
     {
         [Key(0)]
         public int Key { get; set; }

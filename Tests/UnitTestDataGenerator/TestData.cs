@@ -35,6 +35,14 @@ namespace UnitTests
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestUIntMax", new byte[] { 206, 255, 255, 255, 255 }, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestULong", new byte[] { 12 }, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestULongMax", new byte[] { 207, 255, 255, 255, 255, 255, 255, 255, 255 }, null);
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.TestClassWithEnumPropertyAsConcrete", new byte[] { 145, 2 }, null);
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.TestClassWithEnumPropertyAsInterface", new byte[] { 146, 2, 145, 2 }, null);
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.TestClassWithIUnionExampleArrayProperty", new byte[] { 145, 147, 146, 0, 146, 163, 68, 97, 110, 123, 146, 1, 146, 146, 166, 84, 101, 115, 116, 101, 114, 170, 67, 97, 116, 32, 72, 101, 114, 100, 101, 114, 192, 146, 2, 145, 2 }, null);
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.TestClassWithStringAndIntPropertiesAsConcrete", new byte[] { 146, 163, 68, 97, 110, 123 }, null);
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.TestClassWithStringAndIntPropertiesAsInterface", new byte[] { 146, 0, 146, 163, 68, 97, 110, 123 }, null);
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.TestClassWithStringAndIntPropertiesWithNoInterface", new byte[] { 146, 123, 163, 68, 97, 110 }, null);
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.TestClassWithStringArrayAndIntArrayPropertiesAsConcrete", new byte[] { 146, 146, 166, 84, 101, 115, 116, 101, 114, 170, 67, 97, 116, 32, 72, 101, 114, 100, 101, 114, 192 }, null);
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.TestClassWithStringArrayAndIntArrayPropertiesAsInterface", new byte[] { 146, 1, 146, 146, 166, 84, 101, 115, 116, 101, 114, 170, 67, 97, 116, 32, 72, 101, 114, 100, 101, 114, 192 }, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.TestDateTimeMidPrecision", new byte[] { 215, 255, 2, 220, 108, 0, 94, 220, 45, 118 }, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.TestDateTimeSimple", new byte[] { 214, 255, 94, 220, 45, 118 }, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.TestDateTimeTopPrecision", new byte[] { 199, 12, 255, 0, 183, 27, 0, 0, 0, 0, 5, 93, 229, 47, 118 }, null);
@@ -43,16 +51,8 @@ namespace UnitTests
             yield return ("MessagePack.Tests.SharedTestItems.Successes.TestNullableDateTimeWithValue", new byte[] { 214, 255, 94, 220, 45, 118 }, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.TestNullableIntWithNoValue", new byte[] { 192 }, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.TestNullableIntWithValue", new byte[] { 42 }, null);
-            yield return ("MessagePack.Tests.SharedTestItems.Successes.TestSomethingWithKeyAndID", new byte[] { 146, 123, 163, 68, 97, 110 }, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.TestString", new byte[] { 175, 84, 104, 101, 32, 98, 101, 115, 116, 32, 67, 97, 102, 195, 169, 115 }, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.TestStringNull", new byte[] { 192 }, null);
-            yield return ("MessagePack.Tests.SharedTestItems.Successes.TestThing0AsConcrete", new byte[] { 146, 163, 68, 97, 110, 123 }, null);
-            yield return ("MessagePack.Tests.SharedTestItems.Successes.TestThing0AsInterface", new byte[] { 146, 0, 146, 163, 68, 97, 110, 123 }, null);
-            yield return ("MessagePack.Tests.SharedTestItems.Successes.TestThing1AsConcrete", new byte[] { 146, 146, 166, 84, 101, 115, 116, 101, 114, 170, 67, 97, 116, 32, 72, 101, 114, 100, 101, 114, 192 }, null);
-            yield return ("MessagePack.Tests.SharedTestItems.Successes.TestThing1AsInterface", new byte[] { 146, 1, 146, 146, 166, 84, 101, 115, 116, 101, 114, 170, 67, 97, 116, 32, 72, 101, 114, 100, 101, 114, 192 }, null);
-            yield return ("MessagePack.Tests.SharedTestItems.Successes.TestThing2AsConcrete", new byte[] { 145, 2 }, null);
-            yield return ("MessagePack.Tests.SharedTestItems.Successes.TestThing2AsInterface", new byte[] { 146, 2, 145, 2 }, null);
-            yield return ("MessagePack.Tests.SharedTestItems.Successes.TestThingWrapper", new byte[] { 145, 147, 146, 0, 146, 163, 68, 97, 110, 123, 146, 1, 146, 146, 166, 84, 101, 115, 116, 101, 114, 170, 67, 97, 116, 32, 72, 101, 114, 100, 101, 114, 192, 146, 2, 145, 2 }, null);
         }
     }
 }

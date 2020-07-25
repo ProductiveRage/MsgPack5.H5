@@ -48,15 +48,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)Successes\TestDateTimeSimple.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\TestStringNull.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\TestString.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Successes\TestThingWrapperAsConcrete.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Successes\TestThing2AsInterface.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Successes\TestThing2AsConcrete.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Successes\TestThing1AsInterface.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Successes\TestThing1AsConcrete.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Successes\TestThing0AsConcrete.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Successes\TestThing0AsInterface.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\TestClassWithIUnionExampleArrayProperty.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\TestClassWithEnumPropertyAsInterface.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\TestClassWithEnumPropertyAsConcrete.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\TestClassWithStringArrayAndIntArrayPropertiesAsInterface.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\TestClassWithStringArrayAndIntArrayPropertiesAsConcrete.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\TestClassWithStringAndIntPropertiesAsConcrete.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\TestClassWithStringAndIntPropertiesAsInterface.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestItemInstanceCreator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ITestItem.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Successes\TestSomethingWithKeyAndID.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\TestClassWithStringAndIntPropertiesWithNoInterface.cs" />
   </ItemGroup>
 </Project>
