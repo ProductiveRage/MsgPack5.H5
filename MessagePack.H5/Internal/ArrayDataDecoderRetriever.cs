@@ -93,7 +93,12 @@ namespace MessagePack
                         if (keyAttribute == null)
                         {
                             if (!p.GetCustomAttributes(typeof(IgnoreMemberAttribute)).Any())
-                                throw new MemberWithoutKeyOrIgnoreException(expectedType, p);
+                            {
+                                throw new MessagePackSerializationException(
+                                    $"Failed to deserialize {expectedType.FullName} value.",
+                                    new MemberWithoutKeyOrIgnoreException(expectedType, p)
+                                );
+                            }
                             return null;
                         }
                         return new { keyAttribute.Key, MemberSummary = new MemberSummary(p.PropertyType, p, instanceAndValueToSet => p.SetValue(instanceAndValueToSet.Instance, instanceAndValueToSet.ValueToSet)) };
@@ -106,7 +111,12 @@ namespace MessagePack
                         if (keyAttribute == null)
                         {
                             if (!f.GetCustomAttributes(typeof(IgnoreMemberAttribute)).Any())
-                                throw new MemberWithoutKeyOrIgnoreException(expectedType, f);
+                            {
+                                throw new MessagePackSerializationException(
+                                    $"Failed to deserialize {expectedType.FullName} value.",
+                                    new MemberWithoutKeyOrIgnoreException(expectedType, f)
+                                );
+                            }
                             return null;
                         }
                         return new { keyAttribute.Key, MemberSummary = new MemberSummary(f.FieldType, f, instanceAndValueToSet => f.SetValue(instanceAndValueToSet.Instance, instanceAndValueToSet.ValueToSet)) };

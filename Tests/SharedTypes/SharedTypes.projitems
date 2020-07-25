@@ -9,6 +9,7 @@
     <Import_RootNamespace>MessagePack.Tests.SharedTypes</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ClassWithStringAndIntPropertiesWithMissingKeyAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithStringAndIntPropertiesWithRepeatedKeys.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithStringAndIntProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Unions\IUnionExample.cs" />
