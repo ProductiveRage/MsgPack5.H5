@@ -1,6 +1,4 @@
 ﻿using System;
-using System.CodeDom;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -46,6 +44,9 @@ namespace UnitTestDataGenerator
                 }
                 catch (Exception e)
                 {
+                    // 2020-07-25 DWR: By only checking the top level exception type and its messages, it means that the inner exception content may not be precisely the same but I'm happy with that (eg. when trying to deserialise to a type that has multiple
+                    // properties with the same Key then the .NET library will throw a MessagePackSerializationException that has an InnerException that references the FormatterCache`1 and that will have an InnerException that describes the repeated key issue
+                    // whereas this library will throw a MessagePackSerializationException with the same message as the C# version but wrap a RepeatedKeyValueException instance - that's close enough to like-for-like behaviour for me)
                     errorRepresentation = $"new ExceptionSummary(TypeRetriever.Get(\"{e.GetType().FullName}\"), {ToLiteral(e.Message)})";
                 }
                 testItemEntries.Add((
@@ -79,13 +80,15 @@ namespace UnitTestDataGenerator
             );
         }
 
-        // Courtesy of https://stackoverflow.com/a/324812/3813189
         private static string ToLiteral(string input)
         {
-            using var writer = new StringWriter();
-            using var provider = CodeDomProvider.CreateProvider("CSharp");
-            provider.GenerateCodeFromExpression(new CodePrimitiveExpression(input), writer, null);
-            return writer.ToString();
+            // Originally went with https://stackoverflow.com/a/324812/3813189 but it seems like it's not possible to prevent that from wrapping (and adding concatenations) when strings are longer than 80 characters, so instead have tried the
+            // below inspired by this comment:
+            //
+            //  Escaping the string shouldn't be too hard if you use a verbatim string literal (i.e. put @ at the start) - then the only thing you have to do is replace " with ""
+            //
+            // .. from Jon Skeet on this Stack Overflow answer: https://stackoverflow.com/a/960352/3813189
+            return (input == null) ? "null" : $"@\"{input.Replace("\"", "\"\"")}\"";
         }
     }
 }

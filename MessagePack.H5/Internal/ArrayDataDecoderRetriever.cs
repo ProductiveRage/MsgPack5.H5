@@ -119,7 +119,10 @@ namespace MessagePack
                         // TODO: Consider expanding support of this - if there are multiple members with the same Key value that are of the same type then should be easy enough; if there are
                         // multiple members with the same Key value but the types are compatible then should also be able to support that; might even be able to handle extended interpretations
                         // of "compatible" with implicit/explicit operators?
-                        throw new RepeatedKeyValueException(expectedType, keyedMember.Key, (existingMemberWithSameKey.MemberInfo, keyedMember.MemberSummary.MemberInfo));
+                        throw new MessagePackSerializationException(
+                            $"Failed to deserialize {expectedType.FullName} value.",
+                            new RepeatedKeyValueException(expectedType, keyedMember.Key, (existingMemberWithSameKey.MemberInfo, keyedMember.MemberSummary.MemberInfo))
+                        );
                     }
                     keyedMembers.Add(keyedMember.Key, keyedMember.MemberSummary);
                 }

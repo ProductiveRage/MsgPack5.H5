@@ -117,12 +117,18 @@ namespace UnitTests
                     {
                         if (deserialisationException.GetType() != expectedError.ExceptionType)
                         {
-                            appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: $"Expected exception {expectedError.ExceptionType.FullName} but {deserialisationException.GetType().FullName} was thrown"));
+                            var additionalInfo = $"Expected exception {expectedError.ExceptionType.FullName} but {deserialisationException.GetType().FullName} was thrown";
+                            if (showFullErrorStackTraceForFailures)
+                                additionalInfo += "\n\n" + deserialisationException.ToString();
+                            appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo));
                             return false;
                         }
                         if (deserialisationException.Message != expectedError.Message)
                         {
-                            appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: $"Expected exception message \"{expectedError.Message}\" but received \"{deserialisationException.Message}\""));
+                            var additionalInfo = $"Expected exception message \"{expectedError.Message}\" but received \"{deserialisationException.Message}\"";
+                            if (showFullErrorStackTraceForFailures)
+                                additionalInfo += "\n\n" + deserialisationException.ToString();
+                            appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo));
                             return false;
                         }
                         appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: true));
