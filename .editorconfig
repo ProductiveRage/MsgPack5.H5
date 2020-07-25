@@ -1,0 +1,7 @@
+[*.cs]
+
+# CA1819: Properties should not return arrays (2020-07-25 DWR: I specifically want to test scenarios where this is the case, so don't advse me against it)
+dotnet_diagnostic.CA1819.severity = silent
+
+# CA1031: Catch more specific exceptions (2020-07-25 DWR: There are various places where I want to capture ALL exceptions, not just specific ones, so this is not a helpful advisory)
+dotnet_diagnostic.CA1031.severity = silent
