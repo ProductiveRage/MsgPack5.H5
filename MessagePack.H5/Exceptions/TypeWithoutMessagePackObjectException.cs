@@ -8,9 +8,7 @@ namespace MessagePack
     public sealed class TypeWithoutMessagePackObjectException : Exception
     {
         public TypeWithoutMessagePackObjectException(Type type) : base(GetMessage(type)) => Type = type ?? throw new ArgumentNullException(nameof(type));
-
         public Type Type { get; }
-
         private static string GetMessage(Type type) => $"Types for deserialisation must have a [MessagePackObject] attibute on them, which is not the case for {type?.FullName}";
     }
 }
