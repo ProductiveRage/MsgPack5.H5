@@ -10,6 +10,7 @@ using static H5.Core.es5;
 
 namespace UnitTests
 {
+    // Note: This project has a PreBuild step that will run the .NET UnitTestDataGenerator project and so ensure that any changes to test items in the SharedTestItems project are reflected in the generated TestData.cs file before this project builds
     internal static class Program
     {
         private const string _testFilterQueryStringName = "test";
