@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MessagePack.Tests.SharedTestItems.Successes
+namespace MessagePack.Tests.SharedTestItems.Successes.PrimitiveLikes
 {
     /// <summary>
     /// This is a date time that will require the largest of the three formats - it's still within a reasonable range but it has a higher precision

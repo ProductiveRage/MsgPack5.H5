@@ -1,4 +1,4 @@
-﻿namespace MessagePack.Tests.SharedTestItems.Successes
+﻿namespace MessagePack.Tests.SharedTestItems.Successes.PrimitiveLikes
 {
     internal sealed class TestStringNull : SuccessTestItem<string>
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace MessagePack.Tests.SharedTestItems.Successes
+namespace MessagePack.Tests.SharedTestItems.Successes.PrimitiveLikes
 {
     internal sealed class TestLongerString : SuccessTestItem<string>
     {
