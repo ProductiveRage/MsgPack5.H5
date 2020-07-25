@@ -18,7 +18,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\MsgPack5.H5\MsgPack5.H5.csproj" />
+    <ProjectReference Include="..\..\MsgPack5.H5\MessagePack.H5.csproj" />
   </ItemGroup>
 
   <Import Project="..\SharedTypes\SharedTypes.projitems" Label="Shared" />

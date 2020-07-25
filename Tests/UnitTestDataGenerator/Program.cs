@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using MessagePack;
-using MsgPack5.H5.Tests.SharedTestItems;
+using MessagePack.Tests.SharedTestItems;
 
 namespace UnitTestDataGenerator
 {

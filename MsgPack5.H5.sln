@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29102.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MsgPack5.H5", "MsgPack5.H5\MsgPack5.H5.csproj", "{26758AB1-EFD9-4931-A562-A78AB2151A33}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessagePack.H5", "MessagePack.H5\MessagePack.H5.csproj", "{26758AB1-EFD9-4931-A562-A78AB2151A33}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedTypes", "Tests\SharedTypes\SharedTypes.shproj", "{8A8A0BFF-9AF4-4CA6-A539-2F116E7F248C}"
 EndProject
