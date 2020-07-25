@@ -235,10 +235,7 @@ namespace MessagePack
 
         private DecodeResult DecodeArray(IBuffer buf, uint initialOffset, uint length, uint headerLength, Type expectedType)
         {
-            var decoder = ArrayDataDecoderRetriever.TryToGetFor(expectedType, length);
-            if (decoder == null)
-                throw new Exception("Unable to deserialise to type: " + expectedType);
-
+            var decoder = ArrayDataDecoderRetriever.GetFor(expectedType, length);
             var numberOfBytesConsumed = DecodeArrayInternal(buf, initialOffset, length, headerLength, decoder.GetExpectedTypeForIndex, decoder.SetValueAtIndex);
             return new DecodeResult(decoder.GetFinalResult(), numberOfBytesConsumed);
         }

@@ -15,7 +15,7 @@ namespace MessagePack
         /// array then this is a simple task but arrays of values are also used to represent the data for objects where members have Key attributes and, in that case, the returned ArrayDataDecoder will set the individual properties
         /// on the target instance as the values in the array are read from the data stream.
         /// </summary>
-        public static ArrayDataDecoder TryToGetFor(Type expectedType, uint length)
+        public static ArrayDataDecoder GetFor(Type expectedType, uint length)
         {
             // TODO: Need to support other types - IEnumerable<T>, List<T>, etc..
             // TODO: Need to handle types that could be initialised with one of the supported types (array, List<T>, etc..) - either via constructor or through implicit/explicit operators(?)
@@ -40,7 +40,12 @@ namespace MessagePack
 
             // If this isn't a [MessagePack] object then there isn't much more that we can do here
             if (!expectedType.GetCustomAttributes(typeof(MessagePackObjectAttribute), inherit: false).Any())
-                return null;
+            {
+                throw new MessagePackSerializationException(
+                    $"Failed to deserialize {expectedType.FullName} value.",
+                    new TypeWithoutMessagePackObjectException(expectedType)
+                );
+            }
 
             // If the expectedType is NOT an array and it IS a [MessagePack] object then presume that we can dig into its members and look have [Key(..)] attributes and that their values will correspond to indexed values in the array
             if (_decodersForNestedTypes.TryGetValue(expectedType, out var arrayDataDecoder))
