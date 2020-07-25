@@ -3,7 +3,7 @@
 namespace MessagePack
 {
     /// <summary>
-    /// This will be thrown if a target type is encountered and there are no constructors that can be satisfed with the number of values in the available data
+    /// This will be throw if a target type is encountered that must be instantiated via a non-parameterless constructor where the number of keyed members is insufficient to populate the constructor parameters
     /// </summary>
     public sealed class MissingValuesForConstructorException : Exception
     {

@@ -12,6 +12,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithNoPublicConstructor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithMultipleSerializationConstructors.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassThatIsNotMessagePackObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ClassWithIntProperty.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ClassWithTooManyConstructorArguments.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithStringAndIntPropertiesWithMissingKeyAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithStringAndIntPropertiesWithRepeatedKeys.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithStringAndIntProperties.cs" />

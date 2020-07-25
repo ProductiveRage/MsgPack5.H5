@@ -45,12 +45,12 @@ namespace MessagePack
             // If the expectedType is NOT an array and it IS a [MessagePack] object then presume that we can dig into its members and look have [Key(..)] attributes and that their values will correspond to indexed values in the array
             if (_decodersForNestedTypes.TryGetValue(expectedType, out var arrayDataDecoder))
                 return arrayDataDecoder;
-            arrayDataDecoder = GetArrayDecoderWhereArrayElementsAreMembersOfExpectedType(expectedType, length);
+            arrayDataDecoder = GetArrayDecoderWhereArrayElementsAreMembersOfExpectedType(expectedType);
             _decodersForNestedTypes[expectedType] = arrayDataDecoder;
             return arrayDataDecoder;
         }
 
-        private static ArrayDataDecoder GetArrayDecoderWhereArrayElementsAreMembersOfExpectedType(Type expectedType, uint length)
+        private static ArrayDataDecoder GetArrayDecoderWhereArrayElementsAreMembersOfExpectedType(Type expectedType)
         {
             // TODO: Need to handle initialisation-by-constructor (after constructor is called, member setters will still be attempted)
             //
@@ -70,7 +70,7 @@ namespace MessagePack
                 throw new MessagePackSerializationException(expectedType, new TypeWithMultipleSerializationConstructorsException(expectedType));
 
             if (attributeConstructors.Length == 1)
-                return GetDecoderForNonAmbiguousConstructor(expectedType, attributeConstructors[0], length);
+                return GetDecoderForNonAmbiguousConstructor(expectedType, attributeConstructors[0]);
 
             // If there are zero constructors with a [SerializationConstructor] then we have a few possibilities -
             //  1. There is only one and it is parameterless, this is the easiest (we just call it to get a new instance and then all of the work is done by the member setters)
@@ -78,29 +78,33 @@ namespace MessagePack
             //  3. There is only one and the number of items in the array mean that it's possible that its parameters can be satisfied, this is the third easiest (we try to call it with the available values and see if they are compatible)
             //  4. There are multiple constructors and we have to find the best match, this is the most complicated and expensive because we can only do this when we have the values and can try to see if they fit any if the constructor options
             if (allPublicConstructors.Length == 1)
-                return GetDecoderForNonAmbiguousConstructor(expectedType, allPublicConstructors[0], length);
+                return GetDecoderForNonAmbiguousConstructor(expectedType, allPublicConstructors[0]);
 
             throw new NotImplementedException("Deserialising where there are multiple constructor options isn't supported yet"); // TODO
         }
 
-        private static ArrayDataDecoder GetDecoderForNonAmbiguousConstructor(Type expectedType, ConstructorInfo constructor, uint numberOfValuesAvailable)
+        private static ArrayDataDecoder GetDecoderForNonAmbiguousConstructor(Type expectedType, ConstructorInfo constructor)
         {
+            var (keyedMemberLookup, maxKey) = GetLookupForKeyMembers(expectedType);
+
             var constructorParameters = constructor.GetParameters();
             if (!constructorParameters.Any())
             {
-                var keyedMembers = GetLookupForKeyMembers(expectedType);
                 var initialValue = constructor.Invoke(new object[0]);
                 return new ArrayDataDecoder(
-                    expectedTypeForIndex: index => keyedMembers(index)?.Type ?? typeof(object), // The "index" here of the array element corresponds to the [Key(..)] attribute value on the expectedType
-                    setterForIndex: (index, value) => keyedMembers(index)?.Set(initialValue, value),
+                    expectedTypeForIndex: index => keyedMemberLookup(index)?.Type ?? typeof(object), // The "index" here of the array element corresponds to the [Key(..)] attribute value on the expectedType
+                    setterForIndex: (index, value) => keyedMemberLookup(index)?.Set(initialValue, value),
                     finalResultGenerator: () => initialValue
                 );
             }
 
-            if (constructorParameters.Length > numberOfValuesAvailable)
+            // In the .NET library, if a type that is instantiated by constructor is serialised and it had three properties and is then extended to add a new property then this will succeed with the original serialised content so
+            // long as the new number of key'd members on the type is matched by the number of constructor parameters. So we could serialise an older version with three properties and successfully deserialise it into a newer version
+            // that has properties, so long as the new version has four key'd members and four corresponding constructor parameters.
+            if (!maxKey.HasValue || (constructorParameters.Length > maxKey))
             {
                 // The .NET version doesn't support default constructor parameters, so it doesn't matter if we have enough values for all non-default construcftor parameters, we only need to compare the total number of parameters
-                throw new MessagePackSerializationException(expectedType, new MissingValuesForConstructorException(expectedType, numberOfValuesAvailable));
+                throw new MessagePackSerializationException(expectedType, new MissingValuesForConstructorException(expectedType, maxKey.HasValue ? (maxKey.Value + 1) : 0));
             }
 
             throw new NotImplementedException("Deserialising via constructor isn't supported yet"); // TODO
@@ -110,7 +114,7 @@ namespace MessagePack
             //   data by calling ctor using arg list and then setting fields/properties after
         }
 
-        private static Func<uint, MemberSummary> GetLookupForKeyMembers(Type expectedType)
+        private static (Func<uint, MemberSummary> lookup, uint? maxKey) GetLookupForKeyMembers(Type expectedType)
         {
             var keyedMembers = new Dictionary<uint, MemberSummary>();
             var typeToExamine = expectedType;
@@ -156,7 +160,10 @@ namespace MessagePack
                 }
                 typeToExamine = typeToExamine.BaseType;
             }
-            return index => keyedMembers.TryGetValue(index, out var memberInfo) ? memberInfo : null;
+            return (
+                index => keyedMembers.TryGetValue(index, out var memberInfo) ? memberInfo : null,
+                keyedMembers.Any() ? keyedMembers.Keys.Max() : (uint?)null
+            );
         }
 
         private sealed class MemberSummary

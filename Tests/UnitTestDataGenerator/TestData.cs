@@ -7,6 +7,7 @@ namespace UnitTests
     {
         public static IEnumerable<(string TestItemName, byte[] Serialised, ExceptionSummary ExpectedError)> GetItems()
         {
+            yield return ("MessagePack.Tests.SharedTestItems.Failures.ConstructorWithTooManyParameters", new byte[] { 145, 123 }, new ExceptionSummary(TypeRetriever.Get("MessagePack.MessagePackSerializationException"), @"Failed to deserialize MessagePack.Tests.SharedTypes.ClassWithTooManyConstructorArguments value."));
             yield return ("MessagePack.Tests.SharedTestItems.Failures.DeserialiseNullIntoInt", new byte[] { 192 }, new ExceptionSummary(TypeRetriever.Get("MessagePack.MessagePackSerializationException"), @"Failed to deserialize System.Int32 value."));
             yield return ("MessagePack.Tests.SharedTestItems.Failures.MissingKeyAttributeInDestinationType", new byte[] { 146, 123, 163, 65, 66, 67 }, new ExceptionSummary(TypeRetriever.Get("MessagePack.MessagePackSerializationException"), @"Failed to deserialize MessagePack.Tests.SharedTypes.ClassWithStringAndIntPropertiesWithMissingKeyAttribute value."));
             yield return ("MessagePack.Tests.SharedTestItems.Failures.MissingMessagePackObjectAttribute", new byte[] { 146, 123, 163, 65, 66, 67 }, new ExceptionSummary(TypeRetriever.Get("MessagePack.MessagePackSerializationException"), @"Failed to deserialize MessagePack.Tests.SharedTypes.ClassThatIsNotMessagePackObject value."));
