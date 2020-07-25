@@ -33,7 +33,7 @@ namespace MessagePack
             {
                 // TODO [2020-07-24 DWR]: This is a simple check to handle some obvious fail cases - I need to investigate more whether MessagePack supports casting null to other Value Types, perhaps via static operators
                 if (typeof(T).IsPrimitive)
-                    throw new MessagePackSerializationException($"Failed to deserialize {typeof(T).FullName} value.");
+                    throw new MessagePackSerializationException(typeof(T));
 
                 // TODO: More specific error if the cast fails?
                 return (T)value;

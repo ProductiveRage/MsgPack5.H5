@@ -40,61 +40,74 @@ namespace MessagePack
 
             // If this isn't a [MessagePack] object then there isn't much more that we can do here
             if (!expectedType.GetCustomAttributes(typeof(MessagePackObjectAttribute), inherit: false).Any())
-            {
-                throw new MessagePackSerializationException(
-                    $"Failed to deserialize {expectedType.FullName} value.",
-                    new TypeWithoutMessagePackObjectException(expectedType)
-                );
-            }
+                throw new MessagePackSerializationException(expectedType, new TypeWithoutMessagePackObjectException(expectedType));
 
             // If the expectedType is NOT an array and it IS a [MessagePack] object then presume that we can dig into its members and look have [Key(..)] attributes and that their values will correspond to indexed values in the array
             if (_decodersForNestedTypes.TryGetValue(expectedType, out var arrayDataDecoder))
                 return arrayDataDecoder;
-            arrayDataDecoder = TryToGetArrayDecoderWhereArrayElementsAreMembersOfExpectedType(expectedType);
+            arrayDataDecoder = GetArrayDecoderWhereArrayElementsAreMembersOfExpectedType(expectedType, length);
             _decodersForNestedTypes[expectedType] = arrayDataDecoder;
             return arrayDataDecoder;
         }
 
-        private static ArrayDataDecoder TryToGetArrayDecoderWhereArrayElementsAreMembersOfExpectedType(Type expectedType)
+        private static ArrayDataDecoder GetArrayDecoderWhereArrayElementsAreMembersOfExpectedType(Type expectedType, uint length)
         {
-            // TODO: Need to handle initialisation-by-constructor
-            // TODO: For this first pass, require parameterless public constructor (and no other public constructor?)
+            // TODO: Need to handle initialisation-by-constructor (after constructor is called, member setters will still be attempted)
+            //
+            //  0. If there are [SerializationConstructor] constructors then it's an error case
+            //  1. If there is a [SerializationConstructor] constructor then it will attempt to use that, which may result in an exception if the values can not be cast
+            //  2. If there is no [SerializationConstructor] constructor then it will look for the constructor where the most parameters can be populated from the available values
+            //     - Default value parameters do not appear to be supported by the .NET version
+            //     - implicit/explicit operators on types are not supported
+            //     - Simple casts are supported; eg. int -> double, string[] -> IEnumerable<string> or List<string>
 
-            // TODO: Look for [SerializationConstructor] constructor - no ambiguity, then! (TODO: Have to be public?)
             var allPublicConstructors = expectedType.GetConstructors();
             if (!allPublicConstructors.Any())
-            {
-                throw new MessagePackSerializationException(
-                    $"Failed to deserialize {expectedType.FullName} value.",
-                    new NoAccessibleConstructorsException(expectedType)
-                );
-            }
+                throw new MessagePackSerializationException(expectedType, new NoAccessibleConstructorsException(expectedType));
+
             var attributeConstructors = allPublicConstructors.Where(c => c.GetCustomAttributes(typeof(SerializationConstructorAttribute)).Any()).ToArray();
             if (attributeConstructors.Length > 1)
+                throw new MessagePackSerializationException(expectedType, new TypeWithMultipleSerializationConstructorsException(expectedType));
+
+            if (attributeConstructors.Length == 1)
+                return GetDecoderForNonAmbiguousConstructor(expectedType, attributeConstructors[0], length);
+
+            // If there are zero constructors with a [SerializationConstructor] then we have a few possibilities -
+            //  1. There is only one and it is parameterless, this is the easiest (we just call it to get a new instance and then all of the work is done by the member setters)
+            //  2. There is only one and it has too many parameters to be satisfied, this is the second easiest (it's a failure case)
+            //  3. There is only one and the number of items in the array mean that it's possible that its parameters can be satisfied, this is the third easiest (we try to call it with the available values and see if they are compatible)
+            //  4. There are multiple constructors and we have to find the best match, this is the most complicated and expensive because we can only do this when we have the values and can try to see if they fit any if the constructor options
+            if (allPublicConstructors.Length == 1)
+                return GetDecoderForNonAmbiguousConstructor(expectedType, allPublicConstructors[0], length);
+
+            throw new NotImplementedException("Deserialising where there are multiple constructor options isn't supported yet"); // TODO
+        }
+
+        private static ArrayDataDecoder GetDecoderForNonAmbiguousConstructor(Type expectedType, ConstructorInfo constructor, uint numberOfValuesAvailable)
+        {
+            var constructorParameters = constructor.GetParameters();
+            if (!constructorParameters.Any())
             {
-                throw new MessagePackSerializationException(
-                    $"Failed to deserialize {expectedType.FullName} value.",
-                    new TypeWithMultipleSerializationConstructorsException(expectedType)
+                var keyedMembers = GetLookupForKeyMembers(expectedType);
+                var initialValue = constructor.Invoke(new object[0]);
+                return new ArrayDataDecoder(
+                    expectedTypeForIndex: index => keyedMembers(index)?.Type ?? typeof(object), // The "index" here of the array element corresponds to the [Key(..)] attribute value on the expectedType
+                    setterForIndex: (index, value) => keyedMembers(index)?.Set(initialValue, value),
+                    finalResultGenerator: () => initialValue
                 );
             }
-            else if (attributeConstructors.Length == 1)
+
+            if (constructorParameters.Length > numberOfValuesAvailable)
             {
-                // TODO: Something
-                // - Different ArrayDataDecoder configuration where.. something; build a ctor arg list to populate and then list for fields/properties and finally combine by waiting for all
-                //   data by calling ctor using arg list and then setting fields/properties after
+                // The .NET version doesn't support default constructor parameters, so it doesn't matter if we have enough values for all non-default construcftor parameters, we only need to compare the total number of parameters
+                throw new MessagePackSerializationException(expectedType, new MissingValuesForConstructorException(expectedType, numberOfValuesAvailable));
             }
 
-            var parameterlessConstructor = expectedType.GetConstructor(new Type[0]);
-            if (parameterlessConstructor == null)
-                throw new Exception("Currently only support [MessagePackObject] types that may be created via a parameterless constructor");
+            throw new NotImplementedException("Deserialising via constructor isn't supported yet"); // TODO
 
-            var keyedMembers = GetLookupForKeyMembers(expectedType);
-            var initialValue = parameterlessConstructor.Invoke(new object[0]);
-            return new ArrayDataDecoder(
-                expectedTypeForIndex: index => keyedMembers(index)?.Type ?? typeof(object), // The "index" here of the array element corresponds to the [Key(..)] attribute value on the expectedType
-                setterForIndex: (index, value) => keyedMembers(index)?.Set(initialValue, value),
-                finalResultGenerator: () => initialValue
-            );
+            // TODO: Something
+            // - Different ArrayDataDecoder configuration where.. something; build a ctor arg list to populate and then list for fields/properties and finally combine by waiting for all
+            //   data by calling ctor using arg list and then setting fields/properties after
         }
 
         private static Func<uint, MemberSummary> GetLookupForKeyMembers(Type expectedType)
@@ -111,12 +124,7 @@ namespace MessagePack
                         if (keyAttribute == null)
                         {
                             if (!p.GetCustomAttributes(typeof(IgnoreMemberAttribute)).Any())
-                            {
-                                throw new MessagePackSerializationException(
-                                    $"Failed to deserialize {expectedType.FullName} value.",
-                                    new MemberWithoutKeyOrIgnoreException(expectedType, p)
-                                );
-                            }
+                                throw new MessagePackSerializationException(expectedType, new MemberWithoutKeyOrIgnoreException(expectedType, p));
                             return null;
                         }
                         return new { keyAttribute.Key, MemberSummary = new MemberSummary(p.PropertyType, p, instanceAndValueToSet => p.SetValue(instanceAndValueToSet.Instance, instanceAndValueToSet.ValueToSet)) };
@@ -129,12 +137,7 @@ namespace MessagePack
                         if (keyAttribute == null)
                         {
                             if (!f.GetCustomAttributes(typeof(IgnoreMemberAttribute)).Any())
-                            {
-                                throw new MessagePackSerializationException(
-                                    $"Failed to deserialize {expectedType.FullName} value.",
-                                    new MemberWithoutKeyOrIgnoreException(expectedType, f)
-                                );
-                            }
+                                throw new MessagePackSerializationException(expectedType, new MemberWithoutKeyOrIgnoreException(expectedType, f));
                             return null;
                         }
                         return new { keyAttribute.Key, MemberSummary = new MemberSummary(f.FieldType, f, instanceAndValueToSet => f.SetValue(instanceAndValueToSet.Instance, instanceAndValueToSet.ValueToSet)) };
@@ -147,10 +150,7 @@ namespace MessagePack
                         // TODO: Consider expanding support of this - if there are multiple members with the same Key value that are of the same type then should be easy enough; if there are
                         // multiple members with the same Key value but the types are compatible then should also be able to support that; might even be able to handle extended interpretations
                         // of "compatible" with implicit/explicit operators?
-                        throw new MessagePackSerializationException(
-                            $"Failed to deserialize {expectedType.FullName} value.",
-                            new RepeatedKeyValueException(expectedType, keyedMember.Key, (existingMemberWithSameKey.MemberInfo, keyedMember.MemberSummary.MemberInfo))
-                        );
+                        throw new MessagePackSerializationException(expectedType, new RepeatedKeyValueException(expectedType, keyedMember.Key, (existingMemberWithSameKey.MemberInfo, keyedMember.MemberSummary.MemberInfo)));
                     }
                     keyedMembers.Add(keyedMember.Key, keyedMember.MemberSummary);
                 }
