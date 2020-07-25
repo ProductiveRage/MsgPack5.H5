@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Failures\DeserialiseNullIntoInt.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithDictionaryProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\SuccessTestItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestByteMax.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestDecimalMax.cs" />

@@ -13,7 +13,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Unions\IUnionExample.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Unions\ClassWithStringAndIntProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Unions\ClassWithIUnionExampleArrayProperty.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ClassWithDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ClassWithDictionaryProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Unions\ClassWithEnumProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Unions\ClassWithStringArrayAndIntArrayProperties.cs" />
   </ItemGroup>

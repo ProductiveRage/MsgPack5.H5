@@ -8,6 +8,7 @@ namespace UnitTests
         public static IEnumerable<(string TestItemName, byte[] Serialised, ExceptionSummary ExpectedError)> GetItems()
         {
             yield return ("MessagePack.Tests.SharedTestItems.Failures.DeserialiseNullIntoInt", new byte[] { 192 }, new ExceptionSummary(TypeRetriever.Get("MessagePack.MessagePackSerializationException"), "Failed to deserialize System.Int32 value."));
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.MutableClasses.TestClassWithDictionaryProperty", new byte[] { 145, 130, 163, 79, 110, 101, 1, 163, 84, 119, 111, 2 }, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.MutableClasses.TestClassWithStringAndIntProperties", new byte[] { 146, 123, 163, 68, 97, 110 }, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.MutableClasses.Unions.TestClassWithEnumPropertyAsConcrete", new byte[] { 145, 2 }, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.MutableClasses.Unions.TestClassWithEnumPropertyAsInterface", new byte[] { 146, 2, 145, 2 }, null);
