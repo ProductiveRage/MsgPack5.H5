@@ -1,4 +1,4 @@
-﻿namespace MessagePack.Tests.SharedTypes
+﻿namespace MessagePack.Tests.SharedTypes.Unions
 {
     [Union(0, typeof(ClassWithStringAndIntProperties))]
     [Union(1, typeof(ClassWithStringArrayAndIntArrayProperties))]

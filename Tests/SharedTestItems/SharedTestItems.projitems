@@ -48,19 +48,19 @@
     <Compile Include="$(MSBuildThisFileDirectory)Successes\PrimitiveLikes\TestDateTimeSimple.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\PrimitiveLikes\TestStringNull.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\PrimitiveLikes\TestString.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithIUnionExampleArrayProperty.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithEnumPropertyAsInterface.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithEnumPropertyAsConcrete.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithStringArrayAndIntArrayPropertiesAsInterface.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithStringArrayAndIntArrayPropertiesAsConcrete.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithStringAndIntPropertiesAsConcrete.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithStringAndIntPropertiesAsInterface.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestClassWithIUnionExampleArrayProperty.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestClassWithEnumPropertyAsInterface.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestClassWithEnumPropertyAsConcrete.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestClassWithStringArrayAndIntArrayPropertiesAsInterface.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestClassWithStringArrayAndIntArrayPropertiesAsConcrete.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestClassWithStringAndIntPropertiesAsConcrete.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestClassWithStringAndIntPropertiesAsInterface.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestItemInstanceCreator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ITestItem.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithStringAndIntPropertiesWithNoInterface.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithStringAndIntProperties.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\" />
     <Folder Include="$(MSBuildThisFileDirectory)Successes\PrimitiveLikes\" />
     <Folder Include="$(MSBuildThisFileDirectory)Successes\Nullables\" />
   </ItemGroup>

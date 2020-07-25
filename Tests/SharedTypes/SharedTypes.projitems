@@ -9,12 +9,15 @@
     <Import_RootNamespace>MessagePack.Tests.SharedTypes</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)ClassWithStringAndIntPropertiesWithNoInterface.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)IUnionExample.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithStringAndIntProperties.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ClassWithIUnionExampleArrayProperty.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Unions\IUnionExample.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Unions\ClassWithStringAndIntProperties.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Unions\ClassWithIUnionExampleArrayProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithDictionary.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ClassWithEnumProperty.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ClassWithStringArrayAndIntArrayProperties.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Unions\ClassWithEnumProperty.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Unions\ClassWithStringArrayAndIntArrayProperties.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Unions\" />
   </ItemGroup>
 </Project>

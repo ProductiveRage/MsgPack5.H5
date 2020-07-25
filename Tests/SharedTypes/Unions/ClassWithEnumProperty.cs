@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MessagePack.Tests.SharedTypes
+namespace MessagePack.Tests.SharedTypes.Unions
 {
     [MessagePackObject]
     public sealed class ClassWithEnumProperty : IUnionExample // Note: Must be public (not internal) to work with MessagePack

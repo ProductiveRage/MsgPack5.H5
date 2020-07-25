@@ -1,12 +1,12 @@
 ﻿namespace MessagePack.Tests.SharedTypes
 {
     [MessagePackObject]
-    public sealed class ClassWithStringAndIntProperties : IUnionExample // Note: Must be public (not internal) to work with MessagePack
+    public sealed class ClassWithStringAndIntProperties // Note: Must be public (not internal) to work with MessagePack
     {
         [Key(0)]
-        public string Name { get; set; }
+        public int Key { get; set; }
 
         [Key(1)]
-        public int Age { get; set; }
+        public string ID { get; set; }
     }
 }

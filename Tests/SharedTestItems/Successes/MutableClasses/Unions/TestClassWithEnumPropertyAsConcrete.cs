@@ -1,7 +1,7 @@
 ﻿using System;
-using MessagePack.Tests.SharedTypes;
+using MessagePack.Tests.SharedTypes.Unions;
 
-namespace MessagePack.Tests.SharedTestItems.Successes.MutableClasses
+namespace MessagePack.Tests.SharedTestItems.Successes.MutableClasses.Unions
 {
     internal sealed class TestClassWithEnumPropertyAsConcrete : SuccessTestItem<ClassWithEnumProperty>
     {
