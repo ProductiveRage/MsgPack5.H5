@@ -8,14 +8,14 @@ namespace MessagePack
 {
     internal static class ArrayDataDecoderRetriever
     {
-        private static readonly Dictionary<Type, ArrayDataDecoder> _decodersForNestedTypes = new Dictionary<Type, ArrayDataDecoder>(); // 2020-06-05 DWR: Expect this to be run in the browser so there are no threading issues, so no need for ConcurrentDictionary
+        private static readonly Dictionary<Type, IArrayDataDecoder> _decodersForNestedTypes = new Dictionary<Type, IArrayDataDecoder>(); // 2020-06-05 DWR: Expect this to be run in the browser so there are no threading issues, so no need for ConcurrentDictionary
 
         /// <summary>
         /// This returns a type that analyses the target type and returns an object that will allow an array of objects to be read and for them to be used to populate the values in the target instance - if the target instance is an
         /// array then this is a simple task but arrays of values are also used to represent the data for objects where members have Key attributes and, in that case, the returned ArrayDataDecoder will set the individual properties
         /// on the target instance as the values in the array are read from the data stream.
         /// </summary>
-        public static ArrayDataDecoder GetFor(Type expectedType, uint length)
+        public static IArrayDataDecoder GetFor(Type expectedType, uint length)
         {
             // TODO: Need to support other types - IEnumerable<T>, List<T>, etc..
             // TODO: Need to handle types that could be initialised with one of the supported types (array, List<T>, etc..) - either via constructor or through implicit/explicit operators(?)
@@ -28,14 +28,8 @@ namespace MessagePack
                 if (getRank == null)
                     throw new Exception("No longer have acess to JS-based method System.Array.getRank - did an update of h5 change this?");
                 if (getRank(expectedType) != 1)
-                    throw new NotSupportedException("Can not deserialise to arrays if they're not one dimensional"); // TODO: Are multidimensional arrays supported by MessagePack(-CSharp)? See CountMin type in Mosaik; suggests that they ARE
-                var elementType = expectedType.GetElementType();
-                var initialValue = Array.CreateInstance(elementType, (int)length);
-                return new ArrayDataDecoder(
-                    expectedTypeForIndex: _ => elementType,
-                    setterForIndex: (index, value) => initialValue.SetValue(value, (int)index),
-                    finalResultGenerator: () => initialValue
-                );
+                    throw new NotSupportedException("Can not deserialise to arrays if they're not one dimensional"); // TODO: Need to handle multi-dimensional arrays as specified in https://github.com/neuecc/MessagePack-CSharp#built-in-supported-types
+                return new ArrayDataDecoderForArray(expectedType.GetElementType(), length);
             }
 
             // If this isn't a [MessagePack] object then there isn't much more that we can do here
@@ -50,7 +44,7 @@ namespace MessagePack
             return arrayDataDecoder;
         }
 
-        private static ArrayDataDecoder GetArrayDecoderWhereArrayElementsAreMembersOfExpectedType(Type expectedType)
+        private static IArrayDataDecoder GetArrayDecoderWhereArrayElementsAreMembersOfExpectedType(Type expectedType)
         {
             // TODO: Need to handle initialisation-by-constructor (after constructor is called, member setters will still be attempted)
             //
@@ -77,26 +71,20 @@ namespace MessagePack
             //  2. There is only one and it has too many parameters to be satisfied, this is the second easiest (it's a failure case)
             //  3. There is only one and the number of items in the array mean that it's possible that its parameters can be satisfied, this is the third easiest (we try to call it with the available values and see if they are compatible)
             //  4. There are multiple constructors and we have to find the best match, this is the most complicated and expensive because we can only do this when we have the values and can try to see if they fit any if the constructor options
+            //     ^ TODO: This might NOT be that difficult, actually, the .NET library might fix it for a given type and NOT vary it based upon the data presented (the "best match" might be based solely upon the key'd members).. need to test
             if (allPublicConstructors.Length == 1)
                 return GetDecoderForNonAmbiguousConstructor(expectedType, allPublicConstructors[0]);
 
             throw new NotImplementedException("Deserialising where there are multiple constructor options isn't supported yet"); // TODO
         }
 
-        private static ArrayDataDecoder GetDecoderForNonAmbiguousConstructor(Type expectedType, ConstructorInfo constructor)
+        private static IArrayDataDecoder GetDecoderForNonAmbiguousConstructor(Type expectedType, ConstructorInfo constructor)
         {
             var (keyedMemberLookup, maxKey) = GetLookupForKeyMembers(expectedType);
 
             var constructorParameters = constructor.GetParameters();
             if (!constructorParameters.Any())
-            {
-                var initialValue = constructor.Invoke(new object[0]);
-                return new ArrayDataDecoder(
-                    expectedTypeForIndex: index => keyedMemberLookup(index)?.Type ?? typeof(object), // The "index" here of the array element corresponds to the [Key(..)] attribute value on the expectedType
-                    setterForIndex: (index, value) => keyedMemberLookup(index)?.Set(initialValue, value),
-                    finalResultGenerator: () => initialValue
-                );
-            }
+                return new ArrayDataDecoderWithNoConstructorParameters(expectedType, keyedMemberLookup);
 
             // In the .NET library, if a type that is instantiated by constructor is serialised and it had three properties and is then extended to add a new property then this will succeed with the original serialised content so
             // long as the new number of key'd members on the type is matched by the number of constructor parameters. So we could serialise an older version with three properties and successfully deserialise it into a newer version
@@ -164,20 +152,6 @@ namespace MessagePack
                 index => keyedMembers.TryGetValue(index, out var memberInfo) ? memberInfo : null,
                 keyedMembers.Any() ? keyedMembers.Keys.Max() : (uint?)null
             );
-        }
-
-        private sealed class MemberSummary
-        {
-            private readonly Action<(object Instance, object ValueToSet)> _setter;
-            public MemberSummary(Type type, MemberInfo memberInfo, Action<(object Instance, object ValueToSet)> setter)
-            {
-                Type = type ?? throw new ArgumentNullException(nameof(type));
-                MemberInfo = memberInfo ?? throw new ArgumentNullException(nameof(memberInfo));
-                _setter = setter ?? throw new ArgumentNullException(nameof(setter));
-            }
-            public Type Type { get; }
-            public MemberInfo MemberInfo { get; }
-            public void Set(object instance, object valueToSet) => _setter((instance, valueToSet));
         }
     }
 }
