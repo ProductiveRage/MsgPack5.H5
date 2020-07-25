@@ -53,6 +53,15 @@ namespace UnitTests
                 await Task.Delay(1); // Give the UI a chance to update if there have been tests that don't complete almost instantly
             }
             SetStatus("Completed");
+
+            if (testNamesToFilterTo.Any())
+            {
+                var runAllTestsLinks = new HTMLAnchorElement { href = GetHrefForDisablingFiltering() };
+                runAllTestsLinks.innerText = "Return to running all tests";
+                runAllTestsLinks.style.padding = "0 0.5rem";
+                runAllTestsLinks.style.color = "black";
+                document.body.appendChild(runAllTestsLinks);
+            }
         }
 
         private static IEnumerable<TestItem> GetTestsToRun()
@@ -127,10 +136,9 @@ namespace UnitTests
             }
             return false;
         }
-        
-        // TODO: Need a way to remove filtering (..other than just clicking back after navigating to a filtered view?)
 
         private static string GetHrefForFilteringToTest(string displayName) => $"?{_testFilterQueryStringName}={encodeURIComponent(displayName)}";
+        private static string GetHrefForDisablingFiltering() => window.location.href.Split('?')[0];
 
         private static Func<byte[], object> GetNonGenericDecoder(MsgPack5Decoder decoder, Type deserialiseAs)
         {
