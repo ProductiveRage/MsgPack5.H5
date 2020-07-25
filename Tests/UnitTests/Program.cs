@@ -25,7 +25,7 @@ namespace UnitTests
 
             var testNamesToFilterTo = new HashSet<string>(GetAnyTestsSpecifiedInQueryString()); // If this is empty then ALL tests will be run
 
-            var (ToDisplay, SetStatus, SetSuccessCount, SetFailureCount, SetSkippedCount) = GetRunningSummary(allTestItems.Length, showSkippedCount: testNamesToFilterTo.Any());
+            var (ToDisplay, SetStatus, SetSuccessCount, SetFailureCount, SetSkippedCount) = GetRunningSummary(allTestItems.Length, showSkippedCount: testNamesToFilterTo.Any()); // Only show the number of skipped tests if not running them all
             document.body.appendChild(ToDisplay);
 
             // TODO: Group the Unit Tests into namespaces
@@ -37,7 +37,7 @@ namespace UnitTests
                 if (testNamesToFilterTo.Any() && !testNamesToFilterTo.Contains(testItem.FullName) && !testNamesToFilterTo.Contains(testItem.DisplayName))
                 {
                     skipped.Add(testItem);
-                    SetSkippedCount(successes.Count);
+                    SetSkippedCount(skipped.Count);
                 }
                 else if (ExecuteTest(testItem.FullName, testItem.DisplayName, testItem.Serialised, testItem.ExpectedError, showFullErrorStackTraceForFailures: testNamesToFilterTo.Any(), document.body))
                 {
@@ -143,7 +143,7 @@ namespace UnitTests
 
         private static Func<byte[], object> GetDecoder<T>(MsgPack5Decoder decoder) => serialised => decoder.Decode<T>(serialised);
 
-        private static (HTMLElement ToDisplay, Action<string> SetStatus, Action<int> SetSuccessCount, Action<int> SetFailureCount, Action<int> SetSkippedCount) GetRunningSummary(int numberOfTests)
+        private static (HTMLElement ToDisplay, Action<string> SetStatus, Action<int> SetSuccessCount, Action<int> SetFailureCount, Action<int> SetSkippedCount) GetRunningSummary(int numberOfTests, bool showSkippedCount)
         {
             var runningSummary = new HTMLDivElement();
             runningSummary.style.lineHeight = "1.4";
@@ -160,7 +160,8 @@ namespace UnitTests
             runningSummary.appendChild(failureProgress);
 
             var (skippedProgress, setSkippedCount) = GetProgressLine("Skipped");
-            runningSummary.appendChild(skippedProgress);
+            if (showSkippedCount)
+                runningSummary.appendChild(skippedProgress);
 
             return (
                 runningSummary,
