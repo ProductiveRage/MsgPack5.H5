@@ -14,8 +14,11 @@ namespace UnitTests
             yield return ("MessagePack.Tests.SharedTestItems.Failures.MultipleClassWithMultipleSerializationConstructors", new byte[] { 146, 123, 163, 65, 66, 67 }, new ExceptionSummary(TypeRetriever.Get("MessagePack.MessagePackSerializationException"), @"Failed to deserialize MessagePack.Tests.SharedTypes.ClassWithMultipleSerializationConstructors value."));
             yield return ("MessagePack.Tests.SharedTestItems.Failures.NoPublicConstructor", new byte[] { 146, 123, 163, 65, 66, 67 }, new ExceptionSummary(TypeRetriever.Get("MessagePack.MessagePackSerializationException"), @"Failed to deserialize MessagePack.Tests.SharedTypes.ClassWithNoPublicConstructor value."));
             yield return ("MessagePack.Tests.SharedTestItems.Failures.RepeatedTypesInDestinationType", new byte[] { 146, 123, 163, 65, 66, 67 }, new ExceptionSummary(TypeRetriever.Get("MessagePack.MessagePackSerializationException"), @"Failed to deserialize MessagePack.Tests.SharedTypes.ClassWithStringAndIntPropertiesWithRepeatedKeys value."));
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestEmptyIEnumerableOfString", new byte[] { 144 }, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestEmptyStringArray", new byte[] { 144 }, null);
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestNullIEnumerableOfString", new byte[] { 192 }, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestNullStringArray", new byte[] { 192 }, null);
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestPopulatedIEnumerableOfString", new byte[] { 146, 163, 97, 98, 99, 163, 100, 101, 102 }, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestPopulatedStringArray", new byte[] { 146, 163, 97, 98, 99, 163, 100, 101, 102 }, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.ImmutableClasses.TestClassWithIntProperty", new byte[] { 145, 123 }, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.MutableClasses.TestClassWithDictionaryProperty", new byte[] { 145, 130, 163, 79, 110, 101, 1, 163, 84, 119, 111, 2 }, null);

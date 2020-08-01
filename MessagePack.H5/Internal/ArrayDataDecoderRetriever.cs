@@ -17,7 +17,7 @@ namespace MessagePack
         /// </summary>
         public static IArrayDataDecoder GetFor(Type expectedType, uint length)
         {
-            // TODO: Need to support other types - IEnumerable<T>, List<T>, etc..
+            // TODO: Need to support other types - List<T>, etc..
             // TODO: Need to handle types that could be initialised with one of the supported types (array, List<T>, etc..) - either via constructor or through implicit/explicit operators(?)
             // TODO: Should support types without ANY attributes? (I don't like the sound of it)
 
@@ -30,6 +30,13 @@ namespace MessagePack
                 if (getRank(expectedType) != 1)
                     throw new NotSupportedException("Can not deserialise to arrays if they're not one dimensional"); // TODO: Need to handle multi-dimensional arrays as specified in https://github.com/neuecc/MessagePack-CSharp#built-in-supported-types
                 return new ArrayDataDecoderForArray(expectedType.GetElementType(), length);
+            }
+
+            // For IEnumerable<T> target, we can just use an array to satisfy it as the caller doesn't care what concrete type that it is
+            if (expectedType.IsGenericType && (expectedType.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
+            {
+                var elementType = expectedType.GetGenericArguments()[0];
+                return new ArrayDataDecoderForArray(elementType, length);
             }
 
             // If this isn't a [MessagePack] object then there isn't much more that we can do here
