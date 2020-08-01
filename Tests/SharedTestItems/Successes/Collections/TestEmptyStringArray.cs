@@ -1,4 +1,4 @@
-﻿namespace MessagePack.Tests.SharedTestItems.Successes.ImmutableClasses
+﻿namespace MessagePack.Tests.SharedTestItems.Successes.Collections
 {
     internal sealed class TestEmptyStringArray : SuccessTestItem<string[]>
     {
