@@ -11,13 +11,13 @@ namespace MessagePack
         private readonly ConstructorInfo _constructor;
         private readonly Func<uint, MemberSummary> _keyedMemberLookup;
         private readonly uint _maxKey;
-        private readonly Array _arrayBeingPopulated;
+        private readonly object[] _arrayBeingPopulated;
         public ArrayDataDecoderWithKnownParameteredConstructor(ConstructorInfo constructor, Func<uint, MemberSummary> keyedMemberLookup, uint maxKey)
         {
             _constructor = constructor ?? throw new ArgumentNullException(nameof(constructor));
             _keyedMemberLookup = keyedMemberLookup ?? throw new ArgumentNullException(nameof(keyedMemberLookup));
             _maxKey = maxKey;
-            _arrayBeingPopulated = Array.CreateInstance(typeof(object), (int)(_maxKey + 1));
+            _arrayBeingPopulated = new object[(int)(_maxKey + 1)];
         }
 
         // The "index" here will be from the array of values that we're deserialising - it's possible that there will be more values than there are members (if we're deserialising from an old version of a type to a newer version where members were removed)
@@ -37,7 +37,7 @@ namespace MessagePack
 
         public object GetFinalResult()
         {
-            var instance = _constructor.Invoke((object[])_arrayBeingPopulated);
+            var instance = _constructor.Invoke(_arrayBeingPopulated);
             for (uint index = 0; index <= _maxKey; index++)
                 _keyedMemberLookup(index)?.SetIfWritable(instance, _arrayBeingPopulated[(int)index]);
             return instance;
