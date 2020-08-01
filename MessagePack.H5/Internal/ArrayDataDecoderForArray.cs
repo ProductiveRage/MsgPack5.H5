@@ -8,7 +8,6 @@ namespace MessagePack
     internal sealed class ArrayDataDecoderForArray : IArrayDataDecoder
     {
         private readonly Type _elementType;
-        private readonly uint _length;
         private readonly Array _arrayBeingPopulated;
         public ArrayDataDecoderForArray(Type elementType, uint length)
         {
