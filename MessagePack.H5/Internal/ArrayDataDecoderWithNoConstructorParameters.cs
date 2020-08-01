@@ -22,9 +22,11 @@ namespace MessagePack
         }
 
         // The "index" here will be from the array of values that we're deserialising - it's possible that there will be more values than there are members (if we're deserialising from an old version of a type to a newer version where members were removed)
-        // and so we need to accept that the _keyedMemberLookup may return null and we'll return a default value from GetExpectedTypeForIndex and ignore such a call to SetValueAtIndex
+        // and so we need to accept that the _keyedMemberLookup may return null and we'll return a default value from GetExpectedTypeForIndex and ignore such a call to SetValueAtIndex. The same situation could happen if there key values on the members on
+        // the type have any missing values (if there are [Key(..)] properties that go 0, 1 and then 3, for example - we don't care about the data in slot 2).
         public Type GetExpectedTypeForIndex(uint index) => _keyedMemberLookup(index)?.Type ?? typeof(object);
-        public void SetValueAtIndex(uint index, object value) => _keyedMemberLookup(index)?.Set(_instanceBeingPopulated, value);
+        public void SetValueAtIndex(uint index, object value) => _keyedMemberLookup(index)?.SetIfWritable(_instanceBeingPopulated, value);
+        
         public object GetFinalResult() => _instanceBeingPopulated;
     }
 }

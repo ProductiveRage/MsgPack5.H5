@@ -89,17 +89,15 @@ namespace MessagePack
             // In the .NET library, if a type that is instantiated by constructor is serialised and it had three properties and is then extended to add a new property then this will succeed with the original serialised content so
             // long as the new number of key'd members on the type is matched by the number of constructor parameters. So we could serialise an older version with three properties and successfully deserialise it into a newer version
             // that has properties, so long as the new version has four key'd members and four corresponding constructor parameters.
-            if (!maxKey.HasValue || (constructorParameters.Length > maxKey))
+            var numberOfValuesAvailableForConstructorParameters = maxKey.HasValue ? (maxKey.Value + 1) : 0;
+            if (constructorParameters.Length > numberOfValuesAvailableForConstructorParameters)
             {
                 // The .NET version doesn't support default constructor parameters, so it doesn't matter if we have enough values for all non-default construcftor parameters, we only need to compare the total number of parameters
-                throw new MessagePackSerializationException(expectedType, new MissingValuesForConstructorException(expectedType, maxKey.HasValue ? (maxKey.Value + 1) : 0));
+                throw new MessagePackSerializationException(expectedType, new MissingValuesForConstructorException(expectedType, numberOfValuesAvailableForConstructorParameters));
             }
 
-            throw new NotImplementedException("Deserialising via constructor isn't supported yet"); // TODO
-
-            // TODO: Something
-            // - Different ArrayDataDecoder configuration where.. something; build a ctor arg list to populate and then list for fields/properties and finally combine by waiting for all
-            //   data by calling ctor using arg list and then setting fields/properties after
+            // Note: we know that maxKey will have a value here because.. TODO: Something about otherwise the .NET library would not support the type for de/serialising because the keyed members wouldn't match the constructor parameter count
+            return new ArrayDataDecoderWithKnownParameteredConstructor(constructor, keyedMemberLookup, maxKey.Value);
         }
 
         private static (Func<uint, MemberSummary> lookup, uint? maxKey) GetLookupForKeyMembers(Type expectedType)
@@ -109,7 +107,7 @@ namespace MessagePack
             while (typeToExamine != null)
             {
                 var properties = typeToExamine.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(p => p.CanWrite && !p.GetIndexParameters().Any())
+                    .Where(p => !p.GetIndexParameters().Any())
                     .Select(p =>
                     {
                         var keyAttribute = (KeyAttribute)p.GetCustomAttributes(typeof(KeyAttribute)).FirstOrDefault();
@@ -119,7 +117,12 @@ namespace MessagePack
                                 throw new MessagePackSerializationException(expectedType, new MemberWithoutKeyOrIgnoreException(expectedType, p));
                             return null;
                         }
-                        return new { keyAttribute.Key, MemberSummary = new MemberSummary(p.PropertyType, p, instanceAndValueToSet => p.SetValue(instanceAndValueToSet.Instance, instanceAndValueToSet.ValueToSet)) };
+                        Action<(object Instance, object ValueToSet)> setterIfWritable;
+                        if (p.CanWrite)
+                            setterIfWritable =  instanceAndValueToSet => p.SetValue(instanceAndValueToSet.Instance, instanceAndValueToSet.ValueToSet);
+                        else
+                            setterIfWritable = null;
+                        return new { keyAttribute.Key, MemberSummary = new MemberSummary(p.PropertyType, p, setterIfWritable)};
                     })
                     .Where(p => p != null);
                 var fields = typeToExamine.GetFields(BindingFlags.Public | BindingFlags.Instance)
@@ -148,6 +151,7 @@ namespace MessagePack
                 }
                 typeToExamine = typeToExamine.BaseType;
             }
+
             return (
                 index => keyedMembers.TryGetValue(index, out var memberInfo) ? memberInfo : null,
                 keyedMembers.Any() ? keyedMembers.Keys.Max() : (uint?)null

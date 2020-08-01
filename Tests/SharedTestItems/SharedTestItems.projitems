@@ -18,8 +18,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Failures\DeserialiseNullIntoInt.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestNullStringArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestEmptyStringArray.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedListOfArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedStringArray.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\ImmutableClasses\TestClassWithIntProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithDictionaryProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\SuccessTestItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestByteMax.cs" />

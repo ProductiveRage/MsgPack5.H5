@@ -5,15 +5,21 @@ namespace MessagePack
 {
     internal sealed class MemberSummary
     {
-        private readonly Action<(object Instance, object ValueToSet)> _setter;
-        public MemberSummary(Type type, MemberInfo memberInfo, Action<(object Instance, object ValueToSet)> setter)
+        private readonly Action<(object Instance, object ValueToSet)> _setterIfWritable;
+        public MemberSummary(Type type, MemberInfo memberInfo, Action<(object Instance, object ValueToSet)> setterIfWritable)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             MemberInfo = memberInfo ?? throw new ArgumentNullException(nameof(memberInfo));
-            _setter = setter ?? throw new ArgumentNullException(nameof(setter));
+            _setterIfWritable = setterIfWritable; // This will be null if the member if not settable
         }
+
         public Type Type { get; }
+
         public MemberInfo MemberInfo { get; }
-        public void Set(object instance, object valueToSet) => _setter((instance, valueToSet));
+
+        /// <summary>
+        /// This will do nothing if the member is not settable
+        /// </summary>
+        public void SetIfWritable(object instance, object valueToSet) => _setterIfWritable?.Invoke((instance, valueToSet));
     }
 }
