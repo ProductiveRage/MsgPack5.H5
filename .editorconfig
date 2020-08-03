@@ -5,3 +5,6 @@ dotnet_diagnostic.CA1819.severity = silent
 
 # CA1031: Catch more specific exceptions (2020-07-25 DWR: There are various places where I want to capture ALL exceptions, not just specific ones, so this is not a helpful advisory)
 dotnet_diagnostic.CA1031.severity = silent
+
+# CA1825: Avoid unnecessary zero-length array allocations. Use Array.Empty<string>() instead. (2020-08-03 DWR: This isn't supported by h5, so don't suggest it)
+dotnet_diagnostic.CA1825.severity = silent

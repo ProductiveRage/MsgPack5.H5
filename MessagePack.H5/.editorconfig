@@ -1,0 +1,4 @@
+[*.cs]
+
+# CA1032: Specify all of the standard exception constructors on custom exception classes (2020-08-03 DWR: I don't believe that the justifications for doing this in .NET apply in h5 projects)
+dotnet_diagnostic.CA1032.severity = silent
