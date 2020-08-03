@@ -16,6 +16,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Failures\MissingKeyAttributeInDestinationType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\RepeatedTypesInDestinationType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\DeserialiseNullIntoInt.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Failures\DeserialiseIntToString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestEmptyIEnumerableOfString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestNullStringArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestEmptyStringArray.cs" />
@@ -26,6 +27,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithDictionaryProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestClassThatHasInterfaceButNoUnionEntryAsConcrete.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestClassThatHasInterfaceButNoUnionEntryAsInterface.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestByteToInt.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\SuccessTestItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestByteMax.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestDecimalMax.cs" />

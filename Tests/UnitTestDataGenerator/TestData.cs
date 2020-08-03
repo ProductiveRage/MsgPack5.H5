@@ -8,6 +8,7 @@ namespace UnitTests
         public static IEnumerable<(string TestItemName, byte[] Serialised, string AlternateResultJson, ExceptionSummary ExpectedError)> GetItems()
         {
             yield return ("MessagePack.Tests.SharedTestItems.Failures.ConstructorWithTooManyParameters", new byte[] { 145, 123 }, null, new ExceptionSummary(TypeRetriever.Get("MessagePack.MessagePackSerializationException"), @"Failed to deserialize MessagePack.Tests.SharedTypes.ClassWithTooManyConstructorArguments value."));
+            yield return ("MessagePack.Tests.SharedTestItems.Failures.DeserialiseIntToString", new byte[] { 123 }, null, new ExceptionSummary(TypeRetriever.Get("MessagePack.MessagePackSerializationException"), @"Failed to deserialize System.String value."));
             yield return ("MessagePack.Tests.SharedTestItems.Failures.DeserialiseNullIntoInt", new byte[] { 192 }, null, new ExceptionSummary(TypeRetriever.Get("MessagePack.MessagePackSerializationException"), @"Failed to deserialize System.Int32 value."));
             yield return ("MessagePack.Tests.SharedTestItems.Failures.MissingKeyAttributeInDestinationType", new byte[] { 146, 123, 163, 65, 66, 67 }, null, new ExceptionSummary(TypeRetriever.Get("MessagePack.MessagePackSerializationException"), @"Failed to deserialize MessagePack.Tests.SharedTypes.ClassWithStringAndIntPropertiesWithMissingKeyAttribute value."));
             yield return ("MessagePack.Tests.SharedTestItems.Failures.MissingMessagePackObjectAttribute", new byte[] { 146, 123, 163, 65, 66, 67 }, null, new ExceptionSummary(TypeRetriever.Get("MessagePack.MessagePackSerializationException"), @"Failed to deserialize MessagePack.Tests.SharedTypes.ClassThatIsNotMessagePackObject value."));
@@ -44,6 +45,7 @@ namespace UnitTests
             yield return ("MessagePack.Tests.SharedTestItems.Successes.PrimitiveLikes.TestStringNull", new byte[] { 192 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestByte", new byte[] { 12 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestByteMax", new byte[] { 204, 255 }, null, null);
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestByteToInt", new byte[] { 12 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestDecimal", new byte[] { 163, 49, 46, 50 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestDecimalMax", new byte[] { 189, 55, 57, 50, 50, 56, 49, 54, 50, 53, 49, 52, 50, 54, 52, 51, 51, 55, 53, 57, 51, 53, 52, 51, 57, 53, 48, 51, 51, 53 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestDecimalMin", new byte[] { 190, 45, 55, 57, 50, 50, 56, 49, 54, 50, 53, 49, 52, 50, 54, 52, 51, 51, 55, 53, 57, 51, 53, 52, 51, 57, 53, 48, 51, 51, 53 }, null, null);

@@ -23,36 +23,67 @@ namespace MessagePack
         {
             var result = Decode(buf, 0, typeof(T));
             buf.Consume(result.NumberOfBytesConsumed);
-            return TryToCast<T>(result.Value);
+            return (T)TryToCast(result.Value, typeof(T));
         }
 
-        private static T TryToCast<T>(object value)
+        private static object TryToCast(object value, Type type)
         {
             // If the value is null then there's not much we can hopefully - hopefully it's a reference type (which will be fine) or it's a value type with an operator that can handle null (if not, it's correct to fail)
             if (value is null)
             {
                 // TODO [2020-07-24 DWR]: This is a simple check to handle some obvious fail cases - I need to investigate more whether MessagePack supports casting null to other Value Types, perhaps via static operators
-                if (typeof(T).IsPrimitive)
-                    throw new MessagePackSerializationException(typeof(T));
+                if (TreatAsPrimitive(type))
+                    throw new MessagePackSerializationException(type);
 
-                // TODO: More specific error if the cast fails?
-                return (T)value;
+                if (GetInnerTypeOfNullableIfTypeIsNullable(type) is object)
+                    return null;
+
+                try
+                {
+                    // This will cover the cases of where a byte value was read(because it was a small number) but an int was expected
+                    return Convert.ChangeType(value, type);
+                }
+                catch (Exception e)
+                {
+                    throw new MessagePackSerializationException(type, e);
+                }
             }
 
             // If the value is directly assignable then we don't need to do anything other than cast it directly
-            if (typeof(T).IsAssignableFrom(value.GetType()))
-                return (T)value;
+            if (type.IsAssignableFrom(value.GetType()))
+                return value;
 
             // If the target type is a nullable and the value isn't null (which we know it isn't, since that was checked for at the top of this method) then get the inner type of the nullable and try to cast the value to THAT because
             // trying to cast a byte to a Nullable<int> will fail but casting a byte to an int will succeed and then we can cast THAT to Nullable<int> and all will be well
-            Type changeTo;
-            if (typeof(T).IsGenericType && (typeof(T).GetGenericTypeDefinition() == typeof(Nullable<>)))
-                changeTo = typeof(T).GetGenericArguments()[0];
-            else
-                changeTo = typeof(T);
+            // ^ TODO: Update this comment?
+            var innerTypeIfTypeIsNullable = GetInnerTypeOfNullableIfTypeIsNullable(type);
+            if (innerTypeIfTypeIsNullable is object)
+                return TryToCast(value, innerTypeIfTypeIsNullable);
 
-            // Try this - it will cover the cases of where a byte value was read (because it was a small number) but an int was expected
-            return (T)Convert.ChangeType(value, changeTo);
+            // Primitive values like numbers and booleans get special handling as we support trying to change from one type to another - but not for ALL types, so we shouldn't try to call Convert.ChangeType when we've got an int and we
+            // want a string (the call will succeed with a string representation of the value but that isn't consistent with the behaviour of the .NET library)
+            if (TreatAsPrimitive(type))
+            {
+                try
+                {
+                    return Convert.ChangeType(value, type);
+                }
+                catch (Exception e)
+                {
+                    throw new MessagePackSerializationException(type, e);
+                }
+            }
+
+            throw new MessagePackSerializationException(type);
+        }
+
+        private static bool TreatAsPrimitive(Type type) => type.IsPrimitive || (type == typeof(decimal));
+
+        private static Type GetInnerTypeOfNullableIfTypeIsNullable(Type type)
+        {
+            return type.IsGenericType && (type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                ? type.GetGenericArguments()[0]
+                : null;
         }
 
         private DecodeResult Decode(IBuffer buf, uint initialOffset, Type expectedType)
