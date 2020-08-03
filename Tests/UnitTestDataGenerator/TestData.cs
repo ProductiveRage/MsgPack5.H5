@@ -24,6 +24,7 @@ namespace UnitTests
             yield return ("MessagePack.Tests.SharedTestItems.Successes.ImmutableClasses.TestClassWithIntProperty", new byte[] { 145, 123 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.MutableClasses.TestClassWithDictionaryProperty", new byte[] { 145, 130, 163, 79, 110, 101, 1, 163, 84, 119, 111, 2 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.MutableClasses.TestClassWithStringAndIntProperties", new byte[] { 146, 123, 163, 68, 97, 110 }, null, null);
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.MutableClasses.TestFromClassWithBytePropertyToClassWithIntProperty", new byte[] { 145, 12 }, @"{""$type"":""MessagePack.Tests.SharedTypes.ClassWithIntProperty"",""Key"":12}", null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.MutableClasses.Unions.TestClassThatHasInterfaceButNoUnionEntryAsConcrete", new byte[] { 145, 123 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.MutableClasses.Unions.TestClassThatHasInterfaceButNoUnionEntryAsInterface", new byte[] { 192 }, @"null", null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.MutableClasses.Unions.TestClassWithEnumPropertyAsConcrete", new byte[] { 145, 2 }, null, null);
