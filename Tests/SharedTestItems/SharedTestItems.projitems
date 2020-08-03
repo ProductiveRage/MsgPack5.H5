@@ -24,6 +24,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedStringArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\ImmutableClasses\TestClassWithIntProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithDictionaryProperty.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestClassThatHasInterfaceButNoUnionEntryAsConcrete.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestClassThatHasInterfaceButNoUnionEntryAsInterface.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\SuccessTestItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestByteMax.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestDecimalMax.cs" />
@@ -75,7 +77,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithStringAndIntProperties.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\" />
     <Folder Include="$(MSBuildThisFileDirectory)Successes\PrimitiveLikes\" />
     <Folder Include="$(MSBuildThisFileDirectory)Successes\Nullables\" />
   </ItemGroup>

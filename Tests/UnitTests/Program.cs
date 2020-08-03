@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using MessagePack;
 using MessagePack.Tests.SharedTestItems;
+using Newtonsoft.Json;
 using static H5.Core.dom;
 using static H5.Core.es5;
 
@@ -17,8 +18,8 @@ namespace UnitTests
 
         private static async Task Main()
         {
-            var allTestItems = GetTestsToRun().ToArray();
-            if (!allTestItems.Any())
+            var allTestItemDetails = GetTestsToRun().ToArray();
+            if (!allTestItemDetails.Any())
             {
                 document.body.appendChild(GetMessage("There were no tests found to run", hrefIfTextShouldLink: null, isSuccess: false));
                 return;
@@ -26,7 +27,7 @@ namespace UnitTests
 
             var testNamesToFilterTo = new HashSet<string>(GetAnyTestsSpecifiedInQueryString()); // If this is empty then ALL tests will be run
 
-            var (summaryContentToDisplay, setStatus, setSuccessCount, setFailureCount, setSkippedCount) = GetRunningSummary(allTestItems.Length, showSkippedCount: testNamesToFilterTo.Any()); // Only show the number of skipped tests if not running them all
+            var (summaryContentToDisplay, setStatus, setSuccessCount, setFailureCount, setSkippedCount) = GetRunningSummary(allTestItemDetails.Length, showSkippedCount: testNamesToFilterTo.Any()); // Only show the number of skipped tests if not running them all
             document.body.appendChild(summaryContentToDisplay);
 
             var failureContainer = document.createElement("div");
@@ -35,24 +36,24 @@ namespace UnitTests
             var successContainer = document.createElement("div");
             document.body.appendChild(successContainer);
 
-            var skipped = new List<TestItem>();
-            var successes = new List<TestItem>();
-            var failures = new List<TestItem>();
-            foreach (var testItem in allTestItems)
+            var skipped = new List<TestDetails>();
+            var successes = new List<TestDetails>();
+            var failures = new List<TestDetails>();
+            foreach (var testItemDetails in allTestItemDetails)
             {
-                if (testNamesToFilterTo.Any() && !testNamesToFilterTo.Contains(testItem.FullName) && !testNamesToFilterTo.Contains(testItem.DisplayName))
+                if (testNamesToFilterTo.Any() && !testNamesToFilterTo.Contains(testItemDetails.FullName) && !testNamesToFilterTo.Contains(testItemDetails.DisplayName))
                 {
-                    skipped.Add(testItem);
+                    skipped.Add(testItemDetails);
                     setSkippedCount(skipped.Count);
                 }
-                else if (ExecuteTest(testItem.FullName, testItem.DisplayName, testItem.Serialised, testItem.ExpectedError, showDetailedInformation: testNamesToFilterTo.Any(), successContainer, failureContainer))
+                else if (ExecuteTest(testItemDetails, showDetailedInformation: testNamesToFilterTo.Any(), successContainer, failureContainer))
                 {
-                    successes.Add(testItem);
+                    successes.Add(testItemDetails);
                     setSuccessCount(successes.Count);
                 }
                 else
                 {
-                    failures.Add(testItem);
+                    failures.Add(testItemDetails);
                     setFailureCount(failures.Count);
                 }
                 await Task.Delay(1); // Give the UI a chance to update if there have been tests that don't complete almost instantly
@@ -69,10 +70,10 @@ namespace UnitTests
             }
         }
 
-        private static IEnumerable<TestItem> GetTestsToRun()
+        private static IEnumerable<TestDetails> GetTestsToRun()
         {
             var allTestItems = TestData.GetItems()
-                .Select(item => new TestItem(item.TestItemName, item.TestItemName, item.Serialised, item.ExpectedError))
+                .Select(item => new TestDetails(item.TestItemName, item.TestItemName, item.Serialised, item.AlternateResultJson, item.ExpectedError))
                 .ToArray();
 
             // If the tests all have names that comes from types within a shared namespace then remove that namespace from the names so that the output is less noisy
@@ -94,18 +95,19 @@ namespace UnitTests
             return allTestItems;
         }
 
-        private static bool ExecuteTest(string fullName, string displayName, byte[] serialised, ExceptionSummary expectedError, bool showDetailedInformation, HTMLElement appendSuccessesTo, HTMLElement appendFailuresTo)
+        private static bool ExecuteTest(TestDetails testItemDetails, bool showDetailedInformation, HTMLElement appendSuccessesTo, HTMLElement appendFailuresTo)
         {
             try
             {
-                var testItem = TestItemInstanceCreator.GetInstance(fullName);
+                var testItem = TestItemInstanceCreator.GetInstance(testItemDetails.FullName);
                 var decoder = GetTypedMessagePackSerializerDeserializeCall(testItem.DeserialiseAs);
-                if (expectedError is null)
+                if (testItemDetails.ExpectedError is null)
                 {
-                    var clone = decoder(serialised);
-                    if (ObjectComparer.AreEqual(testItem.Value, clone, out var messageIfNotEqual))
+                    var clone = decoder(testItemDetails.Serialised);
+                    var expectedResult = (testItemDetails.AlternateResultJson is null) ? testItem.Value : JsonConvert.DeserializeObject<object>(testItemDetails.AlternateResultJson);
+                    if (ObjectComparer.AreEqual(expectedResult, clone, out var messageIfNotEqual))
                     {
-                        appendSuccessesTo.appendChild(GetRenderedSuccess($"Expected and received: {JsonSerialiserForComparison.ToJson(testItem.Value)}"));
+                        appendSuccessesTo.appendChild(GetRenderedSuccess($"Expected and received: {JsonSerialiserForComparison.ToJson(expectedResult)}"));
                         return true;
                     }
                     appendFailuresTo.appendChild(GetRenderedFailure(messageIfNotEqual));
@@ -114,23 +116,23 @@ namespace UnitTests
                 {
                     try
                     {
-                        decoder(serialised);
-                        GetRenderedFailure("No exception was thrown but expected: " + expectedError.ExceptionType.FullName);
+                        decoder(testItemDetails.Serialised);
+                        GetRenderedFailure("No exception was thrown but expected: " + testItemDetails.ExpectedError.ExceptionType.FullName);
                         return false;
                     }
                     catch (Exception deserialisationException)
                     {
-                        if (deserialisationException.GetType() != expectedError.ExceptionType)
+                        if (deserialisationException.GetType() != testItemDetails.ExpectedError.ExceptionType)
                         {
-                            var additionalInfo = $"Expected exception {expectedError.ExceptionType.FullName} but {deserialisationException.GetType().FullName} was thrown";
+                            var additionalInfo = $"Expected exception {testItemDetails.ExpectedError.ExceptionType.FullName} but {deserialisationException.GetType().FullName} was thrown";
                             if (showDetailedInformation)
                                 additionalInfo += "\n\n" + deserialisationException.ToString();
                             appendFailuresTo.appendChild(GetRenderedFailure(additionalInfo));
                             return false;
                         }
-                        if (deserialisationException.Message != expectedError.Message)
+                        if (deserialisationException.Message != testItemDetails.ExpectedError.Message)
                         {
-                            var additionalInfo = $"Expected exception message \"{expectedError.Message}\" but received \"{deserialisationException.Message}\"";
+                            var additionalInfo = $"Expected exception message \"{testItemDetails.ExpectedError.Message}\" but received \"{deserialisationException.Message}\"";
                             if (showDetailedInformation)
                                 additionalInfo += "\n\n" + deserialisationException.ToString();
                             appendFailuresTo.appendChild(GetRenderedFailure(additionalInfo));
@@ -149,12 +151,12 @@ namespace UnitTests
 
             HTMLElement GetRenderedSuccess(string extendedAdditionalInfo)
             {
-                return GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: true, additionalInfo: showDetailedInformation ? extendedAdditionalInfo : null);
+                return GetMessage(testItemDetails.DisplayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(testItemDetails.DisplayName), isSuccess: true, additionalInfo: showDetailedInformation ? extendedAdditionalInfo : null);
             }
 
             HTMLElement GetRenderedFailure(string summary, string extendedAdditionalInfo = null)
             {
-                return GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: showDetailedInformation ? (extendedAdditionalInfo ?? summary) : summary);
+                return GetMessage(testItemDetails.DisplayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(testItemDetails.DisplayName), isSuccess: false, additionalInfo: showDetailedInformation ? (extendedAdditionalInfo ?? summary) : summary);
             }
         }
 
@@ -297,22 +299,32 @@ namespace UnitTests
             }
         }
 
-        private sealed class TestItem
+        private sealed class TestDetails
         {
-            public TestItem(string fullName, string displayName, byte[] serialised, ExceptionSummary expectedError)
+            public TestDetails(string fullName, string displayName, byte[] serialised, string alternateResultJson, ExceptionSummary expectedError)
             {
                 FullName = !string.IsNullOrWhiteSpace(fullName) ? fullName : throw new ArgumentException("may not be null, blank or whitespace-only", nameof(fullName));
                 DisplayName = !string.IsNullOrWhiteSpace(displayName) ? displayName : throw new ArgumentException("may not be null, blank or whitespace-only", nameof(displayName));
                 Serialised = serialised ?? throw new ArgumentNullException(nameof(serialised));
+                AlternateResultJson = alternateResultJson;
                 ExpectedError = expectedError;
             }
 
             public string FullName { get; set; }
             public string DisplayName { get; set; }
             public byte[] Serialised { get; set; }
+            
+            /// <summary>
+            /// This will be non-null if the deserialised value should not match the source value of the test item - this is unusual, normally the deserialised version will match the source value (or an exception will be thrown)
+            /// </summary>
+            public string AlternateResultJson { get; set; }
+            
+            /// <summary>
+            /// This will be non-null if an exception should be thrown when an attempt is made to deserialise the data as the target type
+            /// </summary>
             public ExceptionSummary ExpectedError { get; set; }
 
-            public TestItem WithDisplayName(string displayName) => new TestItem(FullName, displayName, Serialised, ExpectedError);
+            public TestDetails WithDisplayName(string displayName) => new TestDetails(FullName, displayName, Serialised, AlternateResultJson, ExpectedError);
         }
     }
 }
