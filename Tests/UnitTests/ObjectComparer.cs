@@ -1,5 +1,5 @@
 using System;
-using Newtonsoft.Json;
+using MessagePack.Tests.SharedTestItems;
 
 namespace UnitTests
 {
@@ -8,8 +8,8 @@ namespace UnitTests
         public static bool AreEqual(object expected, object actual, out string messageIfNot)
         {
             // There might be a better way to do this (a testing library for that could be made to work with H5 but this should suffice for now)
-            var jsonExpected = SerialiseToJson(expected);
-            var jsonActual = SerialiseToJson(actual);
+            var jsonExpected = JsonSerialiserForComparison.ToJson(expected);
+            var jsonActual = JsonSerialiserForComparison.ToJson(actual);
             if (jsonExpected == jsonActual)
             {
                 messageIfNot = null;
@@ -45,7 +45,5 @@ namespace UnitTests
             messageIfNot = $"Expected {jsonExpected} but received {jsonActual}";
             return false;
         }
-        
-        public static string SerialiseToJson(object value) => JsonConvert.SerializeObject(value, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All });
     }
 }

@@ -105,17 +105,17 @@ namespace UnitTests
                     var clone = decoder(serialised);
                     if (ObjectComparer.AreEqual(testItem.Value, clone, out var messageIfNotEqual))
                     {
-                        appendSuccessesTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: true, additionalInfo: showDetailedInformation ? $"Expected and received: {ObjectComparer.SerialiseToJson(testItem.Value)}" : null));
+                        appendSuccessesTo.appendChild(GetRenderedSuccess($"Expected and received: {JsonSerialiserForComparison.ToJson(testItem.Value)}"));
                         return true;
                     }
-                    appendFailuresTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: messageIfNotEqual));
+                    appendFailuresTo.appendChild(GetRenderedFailure(messageIfNotEqual));
                 }
                 else
                 {
                     try
                     {
                         decoder(serialised);
-                        appendFailuresTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: "No exception was thrown but expected: " + expectedError.ExceptionType.FullName));
+                        GetRenderedFailure("No exception was thrown but expected: " + expectedError.ExceptionType.FullName);
                         return false;
                     }
                     catch (Exception deserialisationException)
@@ -125,7 +125,7 @@ namespace UnitTests
                             var additionalInfo = $"Expected exception {expectedError.ExceptionType.FullName} but {deserialisationException.GetType().FullName} was thrown";
                             if (showDetailedInformation)
                                 additionalInfo += "\n\n" + deserialisationException.ToString();
-                            appendFailuresTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo));
+                            appendFailuresTo.appendChild(GetRenderedFailure(additionalInfo));
                             return false;
                         }
                         if (deserialisationException.Message != expectedError.Message)
@@ -133,19 +133,29 @@ namespace UnitTests
                             var additionalInfo = $"Expected exception message \"{expectedError.Message}\" but received \"{deserialisationException.Message}\"";
                             if (showDetailedInformation)
                                 additionalInfo += "\n\n" + deserialisationException.ToString();
-                            appendFailuresTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo));
+                            appendFailuresTo.appendChild(GetRenderedFailure(additionalInfo));
                             return false;
                         }
-                        appendSuccessesTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: true));
+                        appendSuccessesTo.appendChild(GetRenderedSuccess($"Expected and received error: {deserialisationException.Message}"));
                         return true;
                     }
                 }
             }
             catch (Exception e)
             {
-                appendFailuresTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: showDetailedInformation ? e.ToString() : e.Message));
+                appendFailuresTo.appendChild(GetRenderedFailure(e.Message, e.ToString()));
             }
             return false;
+
+            HTMLElement GetRenderedSuccess(string extendedAdditionalInfo)
+            {
+                return GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: true, additionalInfo: showDetailedInformation ? extendedAdditionalInfo : null);
+            }
+
+            HTMLElement GetRenderedFailure(string summary, string extendedAdditionalInfo = null)
+            {
+                return GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: showDetailedInformation ? (extendedAdditionalInfo ?? summary) : summary);
+            }
         }
 
         private static string GetHrefForFilteringToTest(string displayName) => $"?{_testFilterQueryStringName}={encodeURIComponent(displayName)}";
