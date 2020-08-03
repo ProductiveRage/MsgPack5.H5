@@ -3,7 +3,7 @@ using MessagePack.Tests.SharedTypes;
 
 namespace MessagePack.Tests.SharedTestItems.Failures
 {
-    internal sealed class WithMultipleSerializationConstructors : ITestItem
+    internal sealed class MultipleSerializationConstructors : ITestItem
     {
         public Type SerialiseAs => typeof(ClassWithStringAndIntProperties);
         public Type DeserialiseAs => typeof(ClassWithMultipleSerializationConstructors);

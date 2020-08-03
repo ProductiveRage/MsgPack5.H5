@@ -11,7 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Failures\ConstructorWithTooManyParameters.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\NoPublicConstructor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Failures\WithMultipleSerializationConstructors.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Failures\MultipleSerializationConstructors.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\MissingMessagePackObjectAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\MissingKeyAttributeInDestinationType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\RepeatedTypesInDestinationType.cs" />
