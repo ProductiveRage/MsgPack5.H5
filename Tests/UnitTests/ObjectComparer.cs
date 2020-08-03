@@ -44,8 +44,8 @@ namespace UnitTests
 
             messageIfNot = $"Expected {jsonExpected} but received {jsonActual}";
             return false;
-
-            string SerialiseToJson(object value) => JsonConvert.SerializeObject(value, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All });
         }
+        
+        public static string SerialiseToJson(object value) => JsonConvert.SerializeObject(value, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All });
     }
 }

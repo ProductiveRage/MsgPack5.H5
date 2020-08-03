@@ -26,10 +26,15 @@ namespace UnitTests
 
             var testNamesToFilterTo = new HashSet<string>(GetAnyTestsSpecifiedInQueryString()); // If this is empty then ALL tests will be run
 
-            var (ToDisplay, SetStatus, SetSuccessCount, SetFailureCount, SetSkippedCount) = GetRunningSummary(allTestItems.Length, showSkippedCount: testNamesToFilterTo.Any()); // Only show the number of skipped tests if not running them all
-            document.body.appendChild(ToDisplay);
+            var (summaryContentToDisplay, setStatus, setSuccessCount, setFailureCount, setSkippedCount) = GetRunningSummary(allTestItems.Length, showSkippedCount: testNamesToFilterTo.Any()); // Only show the number of skipped tests if not running them all
+            document.body.appendChild(summaryContentToDisplay);
 
-            // TODO: Group the Unit Tests into namespaces
+            var failureContainer = document.createElement("div");
+            document.body.appendChild(failureContainer);
+
+            var successContainer = document.createElement("div");
+            document.body.appendChild(successContainer);
+
             var skipped = new List<TestItem>();
             var successes = new List<TestItem>();
             var failures = new List<TestItem>();
@@ -38,21 +43,21 @@ namespace UnitTests
                 if (testNamesToFilterTo.Any() && !testNamesToFilterTo.Contains(testItem.FullName) && !testNamesToFilterTo.Contains(testItem.DisplayName))
                 {
                     skipped.Add(testItem);
-                    SetSkippedCount(skipped.Count);
+                    setSkippedCount(skipped.Count);
                 }
-                else if (ExecuteTest(testItem.FullName, testItem.DisplayName, testItem.Serialised, testItem.ExpectedError, showFullErrorStackTraceForFailures: testNamesToFilterTo.Any(), document.body))
+                else if (ExecuteTest(testItem.FullName, testItem.DisplayName, testItem.Serialised, testItem.ExpectedError, showDetailedInformation: testNamesToFilterTo.Any(), successContainer, failureContainer))
                 {
                     successes.Add(testItem);
-                    SetSuccessCount(successes.Count);
+                    setSuccessCount(successes.Count);
                 }
                 else
                 {
                     failures.Add(testItem);
-                    SetFailureCount(failures.Count);
+                    setFailureCount(failures.Count);
                 }
                 await Task.Delay(1); // Give the UI a chance to update if there have been tests that don't complete almost instantly
             }
-            SetStatus("Completed");
+            setStatus("Completed");
 
             if (testNamesToFilterTo.Any())
             {
@@ -89,7 +94,7 @@ namespace UnitTests
             return allTestItems;
         }
 
-        private static bool ExecuteTest(string fullName, string displayName, byte[] serialised, ExceptionSummary expectedError, bool showFullErrorStackTraceForFailures, HTMLElement appendResultMessageTo)
+        private static bool ExecuteTest(string fullName, string displayName, byte[] serialised, ExceptionSummary expectedError, bool showDetailedInformation, HTMLElement appendSuccessesTo, HTMLElement appendFailuresTo)
         {
             try
             {
@@ -100,17 +105,17 @@ namespace UnitTests
                     var clone = decoder(serialised);
                     if (ObjectComparer.AreEqual(testItem.Value, clone, out var messageIfNotEqual))
                     {
-                        appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: true));
+                        appendSuccessesTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: true, additionalInfo: showDetailedInformation ? $"Expected and received: {ObjectComparer.SerialiseToJson(testItem.Value)}" : null));
                         return true;
                     }
-                    appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: messageIfNotEqual));
+                    appendFailuresTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: messageIfNotEqual));
                 }
                 else
                 {
                     try
                     {
                         decoder(serialised);
-                        appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: "No exception was thrown but expected: " + expectedError.ExceptionType.FullName));
+                        appendFailuresTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: "No exception was thrown but expected: " + expectedError.ExceptionType.FullName));
                         return false;
                     }
                     catch (Exception deserialisationException)
@@ -118,27 +123,27 @@ namespace UnitTests
                         if (deserialisationException.GetType() != expectedError.ExceptionType)
                         {
                             var additionalInfo = $"Expected exception {expectedError.ExceptionType.FullName} but {deserialisationException.GetType().FullName} was thrown";
-                            if (showFullErrorStackTraceForFailures)
+                            if (showDetailedInformation)
                                 additionalInfo += "\n\n" + deserialisationException.ToString();
-                            appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo));
+                            appendFailuresTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo));
                             return false;
                         }
                         if (deserialisationException.Message != expectedError.Message)
                         {
                             var additionalInfo = $"Expected exception message \"{expectedError.Message}\" but received \"{deserialisationException.Message}\"";
-                            if (showFullErrorStackTraceForFailures)
+                            if (showDetailedInformation)
                                 additionalInfo += "\n\n" + deserialisationException.ToString();
-                            appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo));
+                            appendFailuresTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo));
                             return false;
                         }
-                        appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: true));
+                        appendSuccessesTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: true));
                         return true;
                     }
                 }
             }
             catch (Exception e)
             {
-                appendResultMessageTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: showFullErrorStackTraceForFailures ? e.ToString() : e.Message));
+                appendFailuresTo.appendChild(GetMessage(displayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(displayName), isSuccess: false, additionalInfo: showDetailedInformation ? e.ToString() : e.Message));
             }
             return false;
         }
@@ -159,7 +164,7 @@ namespace UnitTests
             };
         }
 
-        private static (HTMLElement ToDisplay, Action<string> SetStatus, Action<int> SetSuccessCount, Action<int> SetFailureCount, Action<int> SetSkippedCount) GetRunningSummary(int numberOfTests, bool showSkippedCount)
+        private static (HTMLElement SummaryContentToDisplay, Action<string> SetStatus, Action<int> SetSuccessCount, Action<int> SetFailureCount, Action<int> SetSkippedCount) GetRunningSummary(int numberOfTests, bool showSkippedCount)
         {
             var runningSummary = new HTMLDivElement();
             runningSummary.style.lineHeight = "1.4";
