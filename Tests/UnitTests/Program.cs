@@ -107,17 +107,18 @@ namespace UnitTests
                     var expectedResult = (testItemDetails.AlternateResultJson is null) ? testItem.Value : JsonConvert.DeserializeObject<object>(testItemDetails.AlternateResultJson);
                     if (ObjectComparer.AreEqual(expectedResult, clone, out var messageIfNotEqual))
                     {
-                        appendSuccessesTo.appendChild(GetRenderedSuccess($"Expected and received: {JsonSerialiserForComparison.ToJson(expectedResult)}"));
+                        RenderSuccess($"Expected and received: {JsonSerialiserForComparison.ToJson(expectedResult)}");
                         return true;
                     }
-                    appendFailuresTo.appendChild(GetRenderedFailure(messageIfNotEqual));
+                    RenderFailure(messageIfNotEqual);
+                    return false;
                 }
                 else
                 {
                     try
                     {
                         decoder(testItemDetails.Serialised);
-                        GetRenderedFailure("No exception was thrown but expected: " + testItemDetails.ExpectedError.ExceptionType.FullName);
+                        RenderFailure("No exception was thrown but expected: " + testItemDetails.ExpectedError.ExceptionType.FullName);
                         return false;
                     }
                     catch (Exception deserialisationException)
@@ -127,7 +128,7 @@ namespace UnitTests
                             var additionalInfo = $"Expected exception {testItemDetails.ExpectedError.ExceptionType.FullName} but {deserialisationException.GetType().FullName} was thrown";
                             if (showDetailedInformation)
                                 additionalInfo += "\n\n" + deserialisationException.ToString();
-                            appendFailuresTo.appendChild(GetRenderedFailure(additionalInfo));
+                            RenderFailure(additionalInfo);
                             return false;
                         }
                         if (deserialisationException.Message != testItemDetails.ExpectedError.Message)
@@ -135,28 +136,32 @@ namespace UnitTests
                             var additionalInfo = $"Expected exception message \"{testItemDetails.ExpectedError.Message}\" but received \"{deserialisationException.Message}\"";
                             if (showDetailedInformation)
                                 additionalInfo += "\n\n" + deserialisationException.ToString();
-                            appendFailuresTo.appendChild(GetRenderedFailure(additionalInfo));
+                            RenderFailure(additionalInfo);
                             return false;
                         }
-                        appendSuccessesTo.appendChild(GetRenderedSuccess($"Expected and received error: {deserialisationException.Message}"));
+                        RenderSuccess($"Expected and received error: {deserialisationException.Message}");
                         return true;
                     }
                 }
             }
             catch (Exception e)
             {
-                appendFailuresTo.appendChild(GetRenderedFailure(e.Message, e.ToString()));
+                RenderFailure(e.Message, e.ToString());
             }
             return false;
 
-            HTMLElement GetRenderedSuccess(string extendedAdditionalInfo)
+            void RenderSuccess(string extendedAdditionalInfo)
             {
-                return GetMessage(testItemDetails.DisplayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(testItemDetails.DisplayName), isSuccess: true, additionalInfo: showDetailedInformation ? extendedAdditionalInfo : null);
+                appendSuccessesTo.appendChild(
+                    GetMessage(testItemDetails.DisplayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(testItemDetails.DisplayName), isSuccess: true, additionalInfo: showDetailedInformation ? extendedAdditionalInfo : null)
+                );
             }
 
-            HTMLElement GetRenderedFailure(string summary, string extendedAdditionalInfo = null)
+            void RenderFailure(string summary, string extendedAdditionalInfo = null)
             {
-                return GetMessage(testItemDetails.DisplayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(testItemDetails.DisplayName), isSuccess: false, additionalInfo: showDetailedInformation ? (extendedAdditionalInfo ?? summary) : summary);
+                appendFailuresTo.appendChild(
+                    GetMessage(testItemDetails.DisplayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(testItemDetails.DisplayName), isSuccess: false, additionalInfo: showDetailedInformation ? (extendedAdditionalInfo ?? summary) : summary)
+                );
             }
         }
 
