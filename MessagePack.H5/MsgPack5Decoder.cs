@@ -23,10 +23,10 @@ namespace MessagePack
         {
             var result = Decode(buf, 0, typeof(T));
             buf.Consume(result.NumberOfBytesConsumed);
-            return (T)TryToCast(result.Value, typeof(T));
+            return (T)Convert(result.Value, typeof(T));
         }
 
-        internal static object TryToCast(object value, Type type)
+        internal static object Convert(object value, Type type)
         {
             // If the value is null then there's not much we can hopefully - hopefully it's a reference type (which will be fine) or it's a value type with an operator that can handle null (if not, it's correct to fail)
             if (value is null)
@@ -38,15 +38,8 @@ namespace MessagePack
                 if (GetInnerTypeOfNullableIfTypeIsNullable(type) is object)
                     return null;
 
-                try
-                {
-                    // This will cover the cases of where a byte value was read(because it was a small number) but an int was expected
-                    return Convert.ChangeType(value, type);
-                }
-                catch (Exception e)
-                {
-                    throw new MessagePackSerializationException(type, e);
-                }
+                if (!type.IsValueType)
+                    return null;
             }
 
             // If the value is directly assignable then we don't need to do anything other than cast it directly
@@ -70,7 +63,7 @@ namespace MessagePack
             // ^ TODO: Update this comment?
             var innerTypeIfTypeIsNullable = GetInnerTypeOfNullableIfTypeIsNullable(type);
             if (innerTypeIfTypeIsNullable is object)
-                return TryToCast(value, innerTypeIfTypeIsNullable);
+                return Convert(value, innerTypeIfTypeIsNullable);
 
             // Primitive values like numbers and booleans get special handling as we support trying to change from one type to another - but not for ALL types, so we shouldn't try to call Convert.ChangeType when we've got an int and we
             // want a string (the call will succeed with a string representation of the value but that isn't consistent with the behaviour of the .NET library)
@@ -78,7 +71,7 @@ namespace MessagePack
             {
                 try
                 {
-                    return Convert.ChangeType(value, type);
+                    return System.Convert.ChangeType(value, type);
                 }
                 catch (Exception e)
                 {
@@ -339,7 +332,10 @@ namespace MessagePack
 
                 // Even though the key and value types will be correct, they will be wrapped in a DecodeResult instance where the Value property is an object and the non-generic IDictionary.Add method will be upset if the
                 // reference types are passed (ie. the object from DecodeResult) where a value type is expected (eg. an Int32 key on the dictionary)
-                dictionary.Add(Convert.ChangeType(decodeKeyResult.Value, keyType), Convert.ChangeType(decodeValueResult.Value, valueType));
+                dictionary.Add(
+                    Convert(decodeKeyResult.Value, keyType),
+                    Convert(decodeValueResult.Value, valueType)
+                );
             }
             return new DecodeResult(dictionary, headerLength + offset - initialOffset);
         }

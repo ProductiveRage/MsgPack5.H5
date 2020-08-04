@@ -104,7 +104,7 @@ namespace UnitTests
                 if (testItemDetails.ExpectedError is null)
                 {
                     var clone = decoder(testItemDetails.Serialised);
-                    var expectedResult = (testItemDetails.AlternateResultJson is null) ? testItem.Value : JsonConvert.DeserializeObject<object>(testItemDetails.AlternateResultJson);
+                    var expectedResult = (testItemDetails.AlternateResultJson is null) ? testItem.Value : DeserialiseAlternateResultJson(testItemDetails.AlternateResultJson);
                     if (ObjectComparer.AreEqual(expectedResult, clone, out var messageIfNotEqual))
                     {
                         RenderSuccess($"Expected and received: {JsonSerialiserForComparison.ToJson(expectedResult)}");
@@ -163,6 +163,23 @@ namespace UnitTests
                     GetMessage(testItemDetails.DisplayName, hrefIfTextShouldLink: GetHrefForFilteringToTest(testItemDetails.DisplayName), isSuccess: false, additionalInfo: showDetailedInformation ? (extendedAdditionalInfo ?? summary) : summary)
                 );
             }
+        }
+
+        /// <summary>
+        /// There is a bug with the h5/Bridge.NET version of Json.NET where $type string isn't always used in the deserialisation of the top level type - if there is a $type string there then it should be possible to call DeserialiseObject
+        /// with a generic type parameter of simply object and for it to read the $type and use the remaining data in the JSON to populate an object of that type but it doesn't work - for example, if the JSON describes a List of int with
+        /// three values and the correct $type string is present then a List of int will be returned but it will be empty. This method offers a workaround to that, where it will deserialise twice if the first pass returned a non-null
+        /// result and it will use the type of the result as the target type for the second deserialisation.
+        /// </summary>
+        private static object DeserialiseAlternateResultJson(string json)
+        {
+            var result = JsonConvert.DeserializeObject<object>(json);
+            if (result is null)
+                return result;
+            var resultType = result.GetType();
+            if (resultType.IsPrimitive || resultType.IsEnum) // Don't bother trying to reparse these, we won't have got any additional information
+                return result;
+            return JsonConvert.DeserializeObject(json, resultType);
         }
 
         private static string GetHrefForFilteringToTest(string displayName) => $"?{_testFilterQueryStringName}={encodeURIComponent(displayName)}";

@@ -24,6 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestNullIEnumerableOfString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedIEnumerableOfString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestEmptyIntStringDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestIntStringDictionaryToEnumStringDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedIntStringDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedStringArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\ImmutableClasses\TestClassWithIntProperty.cs" />

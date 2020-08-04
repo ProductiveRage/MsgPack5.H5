@@ -28,7 +28,7 @@ namespace MessagePack
 
         public void SetValueAtIndex(uint index, object value)
         {
-            var valueToSet = MsgPack5Decoder.TryToCast(value, GetExpectedTypeForIndex(index));
+            var valueToSet = MsgPack5Decoder.Convert(value, GetExpectedTypeForIndex(index));
             _keyedMemberLookup(index)?.SetIfWritable(_instanceBeingPopulated, valueToSet);
         }
 

@@ -31,7 +31,7 @@ namespace MessagePack
         {
             if (index <= _maxKey)
             {
-                var valueToSet = MsgPack5Decoder.TryToCast(value, _constructor.GetParameters()[index].ParameterType);
+                var valueToSet = MsgPack5Decoder.Convert(value, _constructor.GetParameters()[index].ParameterType);
                 _arrayBeingPopulated.SetValue(valueToSet, (int)index);
             }
         }
@@ -41,7 +41,7 @@ namespace MessagePack
             var instance = _constructor.Invoke(_arrayBeingPopulated);
             for (uint index = 0; index <= _maxKey; index++)
             {
-                var valueToSet = MsgPack5Decoder.TryToCast(_arrayBeingPopulated[(int)index], GetExpectedTypeForIndex(index));
+                var valueToSet = MsgPack5Decoder.Convert(_arrayBeingPopulated[(int)index], GetExpectedTypeForIndex(index));
                 _keyedMemberLookup(index)?.SetIfWritable(instance, valueToSet);
             }
             return instance;

@@ -19,7 +19,7 @@ namespace MessagePack
 
         public void SetValueAtIndex(uint index, object value)
         {
-            var valueToSet = MsgPack5Decoder.TryToCast(value, _elementType);
+            var valueToSet = MsgPack5Decoder.Convert(value, _elementType);
             _arrayBeingPopulated.SetValue(valueToSet, (int)index);
         }
 

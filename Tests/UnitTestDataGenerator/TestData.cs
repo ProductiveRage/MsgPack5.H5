@@ -19,6 +19,7 @@ namespace UnitTests
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestEmptyIEnumerableOfString", new byte[] { 144 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestEmptyKeyStringDictionary", new byte[] { 128 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestEmptyStringArray", new byte[] { 144 }, null, null);
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestIntStringDictionaryToEnumStringDictionary", new byte[] { 130, 1, 166, 77, 111, 110, 100, 97, 121, 2, 167, 84, 117, 101, 115, 100, 97, 121 }, @"{""$type"":""System.Collections.Generic.Dictionary`2[[System.DayOfWeek],[System.String]]"",""Monday"":""Monday"",""Tuesday"":""Tuesday""}", null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestNullEmptyIntStringDictionary", new byte[] { 192 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestNullIEnumerableOfString", new byte[] { 192 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestNullStringArray", new byte[] { 192 }, null, null);
