@@ -1,6 +1,6 @@
 # MsgPack.H5
 
-This is a project intended for when you want to write client-side code in [h5](https://github.com/theolivenbaum/h5) (which is an off-shoot of [Bridge.net](https://bridge.net/) that supports modern .csproj formats and generally makes developments a little smoother and more efficient, with an off-process compiler service to speed up compilation and try to avoid re-doing compilation work that doesn't need re-doing) and you want to send a large amount of data down to the client in a binary format but using a mechanism that allows it to be accessed in a type-safe manner.
+This is a project intended for when you want to write client-side code in [h5](https://github.com/theolivenbaum/h5) (which is an off-shoot of [Bridge.NET](https://bridge.net/) that supports modern .csproj formats and generally makes developments a little smoother and more efficient, with an off-process compiler service to speed up compilation and try to avoid re-doing compilation work that doesn't need re-doing) and you want to send a large amount of data down to the client in a binary format but using a mechanism that allows it to be accessed in a type-safe manner.
 
 The data format is [MessagePack](https://msgpack.org/index.html) but with the additional typing that is available in .NET via the [MessagePack-CSharp](https://github.com/neuecc/MessagePack-CSharp) library.
 
@@ -33,3 +33,11 @@ Each step in improvement in the deserialisation process brings this me closer to
 Where I currently work, we have switched to using h5 over Bridge.NET because it supports the more modern .csproj format, which makes development simpler. I'm hoping that Bridge will take some of the improvements from h5 and absorb them into their code base but it would also be feasible, if it made sense, to have a project that took the h5 code and recompiled using Bridge.NET such that NuGet packages for both compilers would be available.
 
 Right now, there isn't a NuGet package available for either - but one or both are definitely going to be coming soon!
+
+## Running the Unit Tests
+
+If you're looking to contribute to the library, the unit test runner doesn't use any third party packages to execute the tests and render the results. The process is to build the UnitTetst project, which has a PreBuild step that runs the UnitTestDataGenerator project that uses reflection to pick up the test items in the SharedTestItems Shared project and perform serialisation/deserialisation work in order to generate the TestData.cs file that the the h5 UnitTests project reads and uses as a list of test to perform and which includes information about whether an exception should be thrown (and what type) or whether a value should be successfully deserialised (and whether that deserialised value should match precisely the source value that was initially serialised - which might not always be the case when deserialising an abstract type).
+
+Hopefully it's sufficiently straightforward to see how add types (in the "SharedTypes" Shared Project) whose de/serialisation should be attempted and then to add an **ITestItem** entry in the "SharedTestItems" Shared Project) that will exercise that de/serialisation. But if not, please feel free to get in touch and ask for advice if you'd like to help!
+
+To run the test themselves, build the UnitTest project and then open the folder UnitTests/{Debug|Release}/netstandard2.0/h5 and them open the the index.html file in a browser. The test items are listed alphabetically, though any failed tests are hoisted up to the top. Clicking on a the title of a test will run that test in isolation and display additional information about it - whether that's a successful test and it shows that it expected and received a particular value or whether that's an error case and you'll get more detailed information about why and how it failed.
