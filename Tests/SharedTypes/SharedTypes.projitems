@@ -9,6 +9,7 @@
     <Import_RootNamespace>MessagePack.Tests.SharedTypes</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ClassWithStringProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithByteProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithIntPropertySetByConstructor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithNoPublicConstructor.cs" />
