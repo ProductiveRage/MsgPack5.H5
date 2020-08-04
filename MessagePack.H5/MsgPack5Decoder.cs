@@ -10,10 +10,10 @@ namespace MessagePack
     {
         public delegate object Decoder(IBuffer buffer, Type expectedType);
 
-        public static MsgPack5Decoder Default { get; } = new MsgPack5Decoder(DateTimeDecoder.GetDecoder); // A custom decoder may be specified but the most common case for .NET payloads feels like the standard primitives plus complex type support PLUS DateTime (which is non-standard)
+        public static MsgPack5Decoder Default { get; } = new MsgPack5Decoder(DateTimeDecoder.Instance); // A custom decoder may be specified but the most common case for .NET payloads feels like the standard primitives plus complex type support PLUS DateTime (which is non-standard)
 
-        private readonly Func<sbyte, Decoder> _customDecoderLookup;
-        public MsgPack5Decoder(Func<sbyte, Decoder> customDecoderLookup = null) => _customDecoderLookup = customDecoderLookup;
+        private readonly ICustomDecoder _customDecoderIfAny;
+        public MsgPack5Decoder(ICustomDecoder customDecoder = null) => _customDecoderIfAny = customDecoder;
 
         public T Decode<T>(Uint8Array data) => Decode<T>(new Uint8ArrayBackedBuffer(data ?? throw new ArgumentNullException(nameof(data))));
         public T Decode<T>(ArrayBuffer data) => Decode<T>(new Uint8ArrayBackedBuffer(new Uint8Array(data ?? throw new ArgumentNullException(nameof(data)))));
@@ -339,8 +339,8 @@ namespace MessagePack
 
         private DecodeResult DecodeExt(IBuffer buf, uint offset, sbyte typeCode, uint size, uint headerLength, Type expectedType)
         {
-            var decoder = _customDecoderLookup?.Invoke(typeCode);
-            if (decoder == null)
+            var decoder = _customDecoderIfAny.TryToGetDecoder(typeCode);
+            if (decoder is null)
                 throw new InvalidOperationException("Unable to find ext type " + typeCode);
 
             var value = decoder(buf.SliceAsBuffer(offset, size), expectedType);

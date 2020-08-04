@@ -3,19 +3,19 @@
 namespace MessagePack
 {
     // Logic here courtesy of https://github.com/neuecc/MessagePack-CSharp
-    internal sealed class DateTimeDecoder
+    public sealed class DateTimeDecoder : ICustomDecoder // This is public, rather than internal, in case consuming code wants to use this in conjunction with other custom decoders
     {
         private static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private const long BclSecondsAtUnixEpoch = 62135596800;
         private const int NanosecondsPerTick = 100;
 
-        public static MsgPack5Decoder.Decoder GetDecoder(sbyte typeCode)
+        public static DateTimeDecoder Instance { get; } = new DateTimeDecoder();
+        private DateTimeDecoder() { }
+
+        public MsgPack5Decoder.Decoder TryToGetDecoder(sbyte typeCode)
         {
-            if (typeCode != -1)
-            {
-                // This is the magic code for DateTime values from MessagePack-CSharp, so if it's not that then there's nothing we can do here
+            if (typeCode != -1) // This is the magic code for DateTime values from MessagePack-CSharp
                 return null;
-            }
 
             return (buffer, expectedType) =>
             {
