@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Failures\ConstructorWithTooManyParameters.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\CastOperatorsAreNotSupported.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Failures\DeserialiseViaConstructorWhereTypeDoesNotHaveSufficientKeyedProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\NoPublicConstructor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\MultipleSerializationConstructors.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\MissingMessagePackObjectAttribute.cs" />
@@ -28,6 +29,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestIntStringDictionaryToEnumStringDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedIntStringDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedStringArray.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\ImmutableClasses\TestClassWithIntPropertyToClassWithIntAndStringPropertiesViaConstructor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\ImmutableClasses\TestClassWithIntProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithConstructorInitialisationAndOverlappingPropertySetting.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithDictionaryProperty.cs" />
