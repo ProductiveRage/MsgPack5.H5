@@ -28,6 +28,7 @@ namespace UnitTests
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestPopulatedKeyStringDictionary", new byte[] { 130, 1, 163, 79, 110, 101, 2, 163, 84, 119, 111 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestPopulatedStringArray", new byte[] { 146, 163, 97, 98, 99, 163, 100, 101, 102 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.ImmutableClasses.TestClassWithIntProperty", new byte[] { 145, 123 }, null, null);
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.MutableClasses.TestClassWithConstructorInitialisationAndOverlappingPropertySetting", new byte[] { 145, 123 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.MutableClasses.TestClassWithDictionaryProperty", new byte[] { 145, 130, 163, 79, 110, 101, 1, 163, 84, 119, 111, 2 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.MutableClasses.TestClassWithStringAndIntProperties", new byte[] { 146, 123, 163, 68, 97, 110 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.MutableClasses.TestFromClassWithBytePropertyToClassWithIntProperty", new byte[] { 145, 12 }, @"{""$type"":""MessagePack.Tests.SharedTypes.ClassWithIntProperty"",""Key"":12}", null);
