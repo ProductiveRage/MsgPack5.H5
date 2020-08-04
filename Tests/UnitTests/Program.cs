@@ -166,20 +166,23 @@ namespace UnitTests
         }
 
         /// <summary>
-        /// There is a bug with the h5/Bridge.NET version of Json.NET where $type string isn't always used in the deserialisation of the top level type - if there is a $type string there then it should be possible to call DeserialiseObject
-        /// with a generic type parameter of simply object and for it to read the $type and use the remaining data in the JSON to populate an object of that type but it doesn't work - for example, if the JSON describes a List of int with
-        /// three values and the correct $type string is present then a List of int will be returned but it will be empty. This method offers a workaround to that, where it will deserialise twice if the first pass returned a non-null
-        /// result and it will use the type of the result as the target type for the second deserialisation.
+        /// There is a bug with the h5/Bridge.NET version of Json.NET (https://github.com/bridgedotnet/Bridge.Newtonsoft.Json/issues/168) where $type string isn't always used in the deserialisation of the top level type - if there is a $type
+        /// string there then it should be possible to call DeserialiseObject with a generic type parameter of simply object and for it to read the $type and use the remaining data in the JSON to populate an object of that type but it doesn't
+        /// work - for example, if the JSON describes a List of int with three values and the correct $type string is present then a List of int will be returned but it will be empty. This method offers a workaround to that, where it will
+        /// do a cheap investigation of the data to see if there is a top-level $type string and then resolve that to a type and deserialise as that type (otherwise it will default to deserialising to type object).
         /// </summary>
         private static object DeserialiseAlternateResultJson(string json)
         {
-            var result = JsonConvert.DeserializeObject<object>(json);
-            if (result is null)
-                return result;
-            var resultType = result.GetType();
-            if (resultType.IsPrimitive || resultType.IsEnum) // Don't bother trying to reparse these, we won't have got any additional information
-                return result;
-            return JsonConvert.DeserializeObject(json, resultType);
+            var rawResult = H5.Script.Write<dynamic>("JSON.parse({0})", json);
+            if (rawResult is null)
+                return rawResult;
+            
+            var typeName = (string)rawResult["$type"];
+            var type = string.IsNullOrWhiteSpace(typeName)
+                ? typeof(object)
+                : Type.GetType(typeName);
+
+            return JsonConvert.DeserializeObject(json, type);
         }
 
         private static string GetHrefForFilteringToTest(string displayName) => $"?{_testFilterQueryStringName}={encodeURIComponent(displayName)}";
