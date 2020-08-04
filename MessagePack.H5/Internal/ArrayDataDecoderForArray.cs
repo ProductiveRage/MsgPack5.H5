@@ -14,8 +14,15 @@ namespace MessagePack
             _elementType = elementType ?? throw new ArgumentNullException(nameof(elementType));
             _arrayBeingPopulated = Array.CreateInstance(elementType, (int)length);
         }
+
         public Type GetExpectedTypeForIndex(uint index) => _elementType;
-        public void SetValueAtIndex(uint index, object value) => _arrayBeingPopulated.SetValue(value, (int)index);
+
+        public void SetValueAtIndex(uint index, object value)
+        {
+            var valueToSet = MsgPack5Decoder.TryToCast(value, _elementType);
+            _arrayBeingPopulated.SetValue(valueToSet, (int)index);
+        }
+
         public object GetFinalResult() => _arrayBeingPopulated;
     }
 }

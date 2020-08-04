@@ -28,6 +28,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestFromClassWithBytePropertyToClassWithIntProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestClassThatHasInterfaceButNoUnionEntryAsConcrete.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestClassThatHasInterfaceButNoUnionEntryAsInterface.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestIntToEnum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestEnum.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestByteToInt.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\SuccessTestItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestByteMax.cs" />

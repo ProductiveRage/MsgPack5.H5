@@ -53,12 +53,14 @@ namespace UnitTests
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestDouble", new byte[] { 203, 63, 243, 51, 51, 51, 51, 51, 51 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestDoubleMax", new byte[] { 203, 127, 239, 255, 255, 255, 255, 255, 255 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestDoubleMin", new byte[] { 203, 255, 239, 255, 255, 255, 255, 255, 255 }, null, null);
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestEnum", new byte[] { 4 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestFloat", new byte[] { 202, 63, 153, 153, 154 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestFloatMax", new byte[] { 202, 127, 127, 255, 255 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestFloatMin", new byte[] { 202, 255, 127, 255, 255 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestInt", new byte[] { 12 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestIntMax", new byte[] { 206, 127, 255, 255, 255 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestIntMin", new byte[] { 210, 128, 0, 0, 0 }, null, null);
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestIntToEnum", new byte[] { 4 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestLong", new byte[] { 12 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestLongMax", new byte[] { 207, 127, 255, 255, 255, 255, 255, 255, 255 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Primitives.TestLongMin", new byte[] { 211, 128, 0, 0, 0, 0, 0, 0, 0 }, null, null);

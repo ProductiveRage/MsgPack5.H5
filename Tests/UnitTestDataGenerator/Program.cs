@@ -42,8 +42,14 @@ namespace UnitTestDataGenerator
                     var deserialised = MessagePackSerializer.Deserialize(type: testItem.DeserialiseAs, bytes: serialised);
                     if (!ObjectComparer.AreEqual(deserialised, testItem.Value, out _))
                     {
-                        // TODO: Explain
-                        alternateResultJson = ToLiteral(JsonSerialiserForComparison.ToJson(deserialised));
+                        // h5's JsonConvert has a bug where JsonConvert.DeserializeObject<object>("12") will be deserialised into a string instead of an Int64 and this would cause a problem if we were, for example, serialising a byte and then wanting to deserialise
+                        // it into an int because the ObjectComparer will be able to tell that they are not precisely the same value and so an alternateResultJson value would be written but this would cause a problem because the h5 Unit Tests code would see that
+                        // alternateResultJson and think that the result should be a string (due to that bug). So, to avoid that confusion, if the JSON of the original value matches the JSON of the different value - because that indicates a case that we don't
+                        // care about (which should only be primitives).
+                        if (JsonSerialiserForComparison.ToJson(deserialised) == JsonSerialiserForComparison.ToJson(testItem.Value))
+                            alternateResultJson = null;
+                        else
+                            alternateResultJson = ToLiteral(JsonSerialiserForComparison.ToJson(deserialised));
                     }
                     else
                         alternateResultJson = "null";

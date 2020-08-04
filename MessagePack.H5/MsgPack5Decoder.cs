@@ -26,7 +26,7 @@ namespace MessagePack
             return (T)TryToCast(result.Value, typeof(T));
         }
 
-        private static object TryToCast(object value, Type type)
+        internal static object TryToCast(object value, Type type)
         {
             // If the value is null then there's not much we can hopefully - hopefully it's a reference type (which will be fine) or it's a value type with an operator that can handle null (if not, it's correct to fail)
             if (value is null)
@@ -52,6 +52,18 @@ namespace MessagePack
             // If the value is directly assignable then we don't need to do anything other than cast it directly
             if (type.IsAssignableFrom(value.GetType()))
                 return value;
+
+            if (type.IsEnum)
+            {
+                try
+                {
+                    return Enum.ToObject(type, value); // Bizarrely-named method, would have through FROM-Object would make more sense! (Thanks https://stackoverflow.com/a/2660215/3813189)
+                }
+                catch (Exception e)
+                {
+                    throw new MessagePackSerializationException(type, e);
+                }
+            }
 
             // If the target type is a nullable and the value isn't null (which we know it isn't, since that was checked for at the top of this method) then get the inner type of the nullable and try to cast the value to THAT because
             // trying to cast a byte to a Nullable<int> will fail but casting a byte to an int will succeed and then we can cast THAT to Nullable<int> and all will be well
@@ -267,8 +279,15 @@ namespace MessagePack
         private DecodeResult DecodeArray(IBuffer buf, uint initialOffset, uint length, uint headerLength, Type expectedType)
         {
             var decoder = ArrayDataDecoderRetriever.GetFor(expectedType, length);
-            var numberOfBytesConsumed = DecodeArrayInternal(buf, initialOffset, length, headerLength, decoder.GetExpectedTypeForIndex, decoder.SetValueAtIndex);
-            return new DecodeResult(decoder.GetFinalResult(), numberOfBytesConsumed);
+            try
+            {
+                var numberOfBytesConsumed = DecodeArrayInternal(buf, initialOffset, length, headerLength, decoder.GetExpectedTypeForIndex, decoder.SetValueAtIndex);
+                return new DecodeResult(decoder.GetFinalResult(), numberOfBytesConsumed);
+            }
+            catch (Exception e)
+            {
+                throw new MessagePackSerializationException(expectedType, e);
+            }
         }
 
         /// <summary>

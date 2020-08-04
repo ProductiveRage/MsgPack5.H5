@@ -25,8 +25,13 @@ namespace MessagePack
         // and so we need to accept that the _keyedMemberLookup may return null and we'll return a default value from GetExpectedTypeForIndex and ignore such a call to SetValueAtIndex. The same situation could happen if there key values on the members on
         // the type have any missing values (if there are [Key(..)] properties that go 0, 1 and then 3, for example - we don't care about the data in slot 2).
         public Type GetExpectedTypeForIndex(uint index) => _keyedMemberLookup(index)?.Type ?? typeof(object);
-        public void SetValueAtIndex(uint index, object value) => _keyedMemberLookup(index)?.SetIfWritable(_instanceBeingPopulated, value);
-        
+
+        public void SetValueAtIndex(uint index, object value)
+        {
+            var valueToSet = MsgPack5Decoder.TryToCast(value, GetExpectedTypeForIndex(index));
+            _keyedMemberLookup(index)?.SetIfWritable(_instanceBeingPopulated, valueToSet);
+        }
+
         public object GetFinalResult() => _instanceBeingPopulated;
     }
 }

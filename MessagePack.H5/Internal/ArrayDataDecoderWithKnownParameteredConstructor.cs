@@ -26,12 +26,13 @@ namespace MessagePack
         // properties that go 0, 1 and then 3, for example - we don't care about the data in slot 2).
         // TODO: Test whether "holes" in the key indexes require constructor "placeholder" parameters or not
         public Type GetExpectedTypeForIndex(uint index) => _keyedMemberLookup(index)?.Type ?? typeof(object); // TODO: This needs to consider constructor parameters as well.. or should it have check that those were compatible before getting this far??
+
         public void SetValueAtIndex(uint index, object value)
         {
             if (index <= _maxKey)
             {
-                var castValue = Convert.ChangeType(value, _constructor.GetParameters()[index].ParameterType); // TODO: Need to deal with casting properly.. I think.. needs to match constructor parameter type AND keyed member? Or should we have rejected that before getting here?
-                _arrayBeingPopulated.SetValue(castValue, (int)index);
+                var valueToSet = MsgPack5Decoder.TryToCast(value, _constructor.GetParameters()[index].ParameterType);
+                _arrayBeingPopulated.SetValue(valueToSet, (int)index);
             }
         }
 
@@ -39,7 +40,10 @@ namespace MessagePack
         {
             var instance = _constructor.Invoke(_arrayBeingPopulated);
             for (uint index = 0; index <= _maxKey; index++)
-                _keyedMemberLookup(index)?.SetIfWritable(instance, _arrayBeingPopulated[(int)index]);
+            {
+                var valueToSet = MsgPack5Decoder.TryToCast(_arrayBeingPopulated[(int)index], GetExpectedTypeForIndex(index));
+                _keyedMemberLookup(index)?.SetIfWritable(instance, valueToSet);
+            }
             return instance;
         }
     }
