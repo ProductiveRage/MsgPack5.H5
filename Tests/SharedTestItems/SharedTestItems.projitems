@@ -19,6 +19,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Failures\RepeatedTypesInDestinationType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\DeserialiseNullIntoInt.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\DeserialiseIntToString.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Failures\ConstructorArgumentsMustHaveKeyedPropertiesForEachArgument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestEmptyIEnumerableOfString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestNullEmptyIntStringDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestNullStringArray.cs" />
@@ -29,8 +30,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestIntStringDictionaryToEnumStringDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedIntStringDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedStringArray.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\ImmutableClasses\TestClassWithObsoletedPropertySetByConstructor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\ImmutableClasses\TestClassWithIntPropertyToClassWithIntAndStringPropertiesViaConstructor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\ImmutableClasses\TestClassWithIntProperty.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithNonConsecutiveKeyProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithConstructorInitialisationAndOverlappingPropertySetting.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithDictionaryProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\CanNotConvertPropertyFromIntToString.cs" />
