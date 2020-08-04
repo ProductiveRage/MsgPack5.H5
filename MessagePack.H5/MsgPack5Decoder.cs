@@ -105,28 +105,6 @@ namespace MessagePack
             if (bufLength < size)
                 throw new IncompleteBufferError();
 
-            // This may be a [Union] attribute - if so then it will will have a key that we'll use to map back to the type via [Union] attributes on this side. Note that an 0x92 value might NOT be related to a [Union], it may also be
-            // an array with less than 15 elements, which is handled further down
-            if ((first == 0x92) && (bufLength > 1))
-            {
-                var typeIndex = buf.ReadUInt8(offset);
-
-                // TODO: Cache this lookup?
-                var unionAttribute = expectedType.GetCustomAttributes(inherit: false).OfType<UnionAttribute>().FirstOrDefault(union => union.Key == typeIndex);
-                if (unionAttribute is object)
-                {
-                    if (unionAttribute.SubType is null)
-                        throw new InvalidOperationException($"Union type index {typeIndex} has null {nameof(unionAttribute.SubType)} specified");
-
-                    offset += 1; // we've accounted for the reading of the "first" byte but we need to account for the "typeIndex" read since we've used it here (if we haven't, let its value be read again after this conditional)
-                    var decodeResult = Decode(buf, offset, unionAttribute.SubType);
-                    return new DecodeResult(
-                        decodeResult.Value,
-                        decodeResult.NumberOfBytesConsumed + 2 // account for the extra two bytes that we read while ascertaining what type (from the [Union] attribute) this needed to be
-                    );
-                }
-            }
-
             if (first < 0x80) // 7-bits positive int
                 return new DecodeResult(first, 1);
 
@@ -270,6 +248,26 @@ namespace MessagePack
 
         private DecodeResult DecodeArray(IBuffer buf, uint initialOffset, uint length, uint headerLength, Type expectedType)
         {
+            // This may be a [Union] attribute - if so then it will will have a key that we'll use to map back to the type via [Union] attributes on this side
+            if (length > 0)
+            {
+                // TODO: Cache this lookup? Would there be any genuine performance boost in the h5 context vs the cost of reflection in .NET?
+                var typeIndex = buf.ReadUInt8(initialOffset);
+                var unionAttribute = expectedType.GetCustomAttributes(inherit: false).OfType<UnionAttribute>().FirstOrDefault(union => union.Key == typeIndex);
+                if (unionAttribute is object)
+                {
+                    if (unionAttribute.SubType is null)
+                        throw new InvalidOperationException($"Union type index {typeIndex} has null {nameof(unionAttribute.SubType)} specified");
+
+                    initialOffset += 1; // we've accounted for the reading of the "first" byte but we need to account for the "typeIndex" read since we've used it here (if we haven't, let its value be read again after this conditional)
+                    var decodeResult = Decode(buf, initialOffset, unionAttribute.SubType);
+                    return new DecodeResult(
+                        decodeResult.Value,
+                        decodeResult.NumberOfBytesConsumed + 2 // account for the extra two bytes that we read while ascertaining what type (from the [Union] attribute) this needed to be
+                    );
+                }
+            }
+
             var decoder = ArrayDataDecoderRetriever.GetFor(expectedType, length);
             try
             {

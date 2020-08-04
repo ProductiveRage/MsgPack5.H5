@@ -33,6 +33,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Failures\CanNotConvertPropertyFromIntToString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestFromClassWithBytePropertyToClassWithIntProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestClassThatHasInterfaceButNoUnionEntryAsConcrete.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestClassThatHasInterfaceButNoUnionEntryAsEntryInInterfaceArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestClassThatHasInterfaceButNoUnionEntryAsInterface.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestIntToEnum.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestEnum.cs" />
