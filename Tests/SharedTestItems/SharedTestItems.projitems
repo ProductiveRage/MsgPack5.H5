@@ -36,7 +36,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestIntToEnum.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestEnum.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestByteToInt.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Successes\SuccessTestItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\SuccessTestItem`2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\SuccessTestItem`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestByteMax.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestDecimalMax.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestDecimalMin.cs" />

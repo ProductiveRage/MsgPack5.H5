@@ -3,10 +3,8 @@ using System.Collections.Generic;
 
 namespace MessagePack.Tests.SharedTestItems.Successes.Collections
 {
-    internal sealed class TestIntStringDictionaryToEnumStringDictionary : ITestItem
+    internal sealed class TestIntStringDictionaryToEnumStringDictionary : SuccessTestItem<Dictionary<int, string>, Dictionary<DayOfWeek, string>>
     {
-        public Type SerialiseAs => typeof(Dictionary<int, string>);
-        public Type DeserialiseAs => typeof(Dictionary<DayOfWeek, string>);
-        public object Value => new Dictionary<int, string> { { 1, "Monday" }, { 2, "Tuesday" } };
+        public TestIntStringDictionaryToEnumStringDictionary() : base(new Dictionary<int, string> { { 1, "Monday" }, { 2, "Tuesday" } }) { }
     }
 }

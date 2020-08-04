@@ -1,11 +1,7 @@
-﻿using System;
-
-namespace MessagePack.Tests.SharedTestItems.Successes.Primitives
+﻿namespace MessagePack.Tests.SharedTestItems.Successes.Primitives
 {
-    internal sealed class TestByteToInt : ITestItem
+    internal sealed class TestByteToInt : SuccessTestItem<byte, int>
     {
-        public Type SerialiseAs => typeof(byte);
-        public Type DeserialiseAs => typeof(int);
-        public object Value => (byte)12;
+        public TestByteToInt() : base(12) { }
     }
 }

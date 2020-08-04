@@ -3,10 +3,8 @@ using MessagePack.Tests.SharedTypes;
 
 namespace MessagePack.Tests.SharedTestItems.Successes.MutableClasses
 {
-    internal sealed class TestFromClassWithBytePropertyToClassWithIntProperty : ITestItem
+    internal sealed class TestFromClassWithBytePropertyToClassWithIntProperty : SuccessTestItem<ClassWithByteProperty, ClassWithIntProperty>
     {
-        public Type SerialiseAs => typeof(ClassWithByteProperty);
-        public Type DeserialiseAs => typeof(ClassWithIntProperty);
-        public object Value => new ClassWithByteProperty { Key = 12 };
+        public TestFromClassWithBytePropertyToClassWithIntProperty() : base(new ClassWithByteProperty { Key = 12 }) { }
     }
 }
