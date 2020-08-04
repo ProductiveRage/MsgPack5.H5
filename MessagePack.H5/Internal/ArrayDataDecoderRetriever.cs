@@ -8,7 +8,7 @@ namespace MessagePack
 {
     internal static class ArrayDataDecoderRetriever
     {
-        private static readonly Dictionary<Type, IArrayDataDecoder> _decodersForNestedTypes = new Dictionary<Type, IArrayDataDecoder>(); // 2020-06-05 DWR: Expect this to be run in the browser so there are no threading issues, so no need for ConcurrentDictionary
+        private static readonly Dictionary<Type, Func<IArrayDataDecoder>> _decoderBuildersForNestedTypes = new Dictionary<Type, Func<IArrayDataDecoder>>(); // 2020-06-05 DWR: Expect this to be run in the browser so there are no threading issues, so no need for ConcurrentDictionary
 
         /// <summary>
         /// This returns a type that analyses the target type and returns an object that will allow an array of objects to be read and for them to be used to populate the values in the target instance - if the target instance is an
@@ -44,14 +44,15 @@ namespace MessagePack
                 throw new MessagePackSerializationException(expectedType, new TypeWithoutMessagePackObjectException(expectedType));
 
             // If the expectedType is NOT an array and it IS a [MessagePack] object then presume that we can dig into its members and look have [Key(..)] attributes and that their values will correspond to indexed values in the array
-            if (_decodersForNestedTypes.TryGetValue(expectedType, out var arrayDataDecoder))
-                return arrayDataDecoder;
-            arrayDataDecoder = GetArrayDecoderWhereArrayElementsAreMembersOfExpectedType(expectedType);
-            _decodersForNestedTypes[expectedType] = arrayDataDecoder;
-            return arrayDataDecoder;
+            if (!_decoderBuildersForNestedTypes.TryGetValue(expectedType, out var arrayDataDecoderBuilder))
+            {
+                arrayDataDecoderBuilder = GetArrayDecoderBuilderWhereArrayElementsAreMembersOfExpectedType(expectedType);
+                _decoderBuildersForNestedTypes[expectedType] = arrayDataDecoderBuilder;
+            }
+            return arrayDataDecoderBuilder();
         }
 
-        private static IArrayDataDecoder GetArrayDecoderWhereArrayElementsAreMembersOfExpectedType(Type expectedType)
+        private static Func<IArrayDataDecoder> GetArrayDecoderBuilderWhereArrayElementsAreMembersOfExpectedType(Type expectedType)
         {
             // TODO: Need to handle initialisation-by-constructor (after constructor is called, member setters will still be attempted)
             //
@@ -71,7 +72,7 @@ namespace MessagePack
                 throw new MessagePackSerializationException(expectedType, new TypeWithMultipleSerializationConstructorsException(expectedType));
 
             if (attributeConstructors.Length == 1)
-                return GetDecoderForNonAmbiguousConstructor(expectedType, attributeConstructors[0]);
+                return GetDecoderBuilderForNonAmbiguousConstructor(expectedType, attributeConstructors[0]);
 
             // If there are zero constructors with a [SerializationConstructor] then we have a few possibilities -
             //  1. There is only one and it is parameterless, this is the easiest (we just call it to get a new instance and then all of the work is done by the member setters)
@@ -80,18 +81,18 @@ namespace MessagePack
             //  4. There are multiple constructors and we have to find the best match, this is the most complicated and expensive because we can only do this when we have the values and can try to see if they fit any if the constructor options
             //     ^ TODO: This might NOT be that difficult, actually, the .NET library might fix it for a given type and NOT vary it based upon the data presented (the "best match" might be based solely upon the key'd members).. need to test
             if (allPublicConstructors.Length == 1)
-                return GetDecoderForNonAmbiguousConstructor(expectedType, allPublicConstructors[0]);
+                return GetDecoderBuilderForNonAmbiguousConstructor(expectedType, allPublicConstructors[0]);
 
             throw new NotImplementedException("Deserialising where there are multiple constructor options isn't supported yet"); // TODO
         }
 
-        private static IArrayDataDecoder GetDecoderForNonAmbiguousConstructor(Type expectedType, ConstructorInfo constructor)
+        private static Func<IArrayDataDecoder> GetDecoderBuilderForNonAmbiguousConstructor(Type expectedType, ConstructorInfo constructor)
         {
             var (keyedMemberLookup, maxKey) = GetLookupForKeyMembers(expectedType);
 
             var constructorParameters = constructor.GetParameters();
             if (!constructorParameters.Any())
-                return new ArrayDataDecoderWithNoConstructorParameters(expectedType, keyedMemberLookup);
+                return () => new ArrayDataDecoderWithNoConstructorParameters(expectedType, keyedMemberLookup);
 
             // In the .NET library, if a type that is instantiated by constructor is serialised and it had three properties and is then extended to add a new property then this will succeed with the original serialised content so
             // long as the new number of key'd members on the type is matched by the number of constructor parameters. So we could serialise an older version with three properties and successfully deserialise it into a newer version
@@ -104,7 +105,7 @@ namespace MessagePack
             }
 
             // Note: we know that maxKey will have a value here because.. TODO: Something about otherwise the .NET library would not support the type for de/serialising because the keyed members wouldn't match the constructor parameter count
-            return new ArrayDataDecoderWithKnownParameteredConstructor(constructor, keyedMemberLookup, maxKey.Value);
+            return () => new ArrayDataDecoderWithKnownParameteredConstructor(constructor, keyedMemberLookup, maxKey.Value);
         }
 
         private static (Func<uint, MemberSummary> lookup, uint? maxKey) GetLookupForKeyMembers(Type expectedType)

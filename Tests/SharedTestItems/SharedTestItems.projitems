@@ -35,6 +35,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestClassThatHasInterfaceButNoUnionEntryAsConcrete.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestClassThatHasInterfaceButNoUnionEntryAsEntryInInterfaceArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestClassThatHasInterfaceButNoUnionEntryAsInterface.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestFromClassWithStringAndIntPropertiesToClassWithStringProperty.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\Unions\TestFromClassWithStringPropertyToClassWithStringAndIntProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestIntToEnum.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestEnum.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Primitives\TestByteToInt.cs" />
