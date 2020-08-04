@@ -18,9 +18,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)ClassThatIsNotMessagePackObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithIntProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithTooManyConstructorArguments.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ClassWithStringAndIntPropertiesWithMissingKeyAttribute.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ClassWithStringAndIntPropertiesWithRepeatedKeys.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ClassWithStringAndIntProperties.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ClassWithIntAndStringPropertiesWithMissingKeyAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ClassWithIntAndStringPropertiesWithRepeatedKeys.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ClassWithIntAndStringProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Unions\ClassThatHasInterfaceButNoUnionEntry.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Unions\IUnionExample.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Unions\ClassWithStringAndIntProperties.cs" />

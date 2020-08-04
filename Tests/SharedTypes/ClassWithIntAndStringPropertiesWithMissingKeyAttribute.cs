@@ -1,7 +1,7 @@
 ﻿namespace MessagePack.Tests.SharedTypes
 {
     [MessagePackObject]
-    public sealed class ClassWithStringAndIntPropertiesWithMissingKeyAttribute // Note: Must be public (not internal) to work with MessagePack
+    public sealed class ClassWithIntAndStringPropertiesWithMissingKeyAttribute // Note: Must be public (not internal) to work with MessagePack
     {
         [Key(0)]
         public int Key { get; set; }

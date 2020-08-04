@@ -5,8 +5,8 @@ namespace MessagePack.Tests.SharedTestItems.Failures
 {
     internal sealed class MissingKeyAttributeInDestinationType : ITestItem
     {
-        public Type SerialiseAs => typeof(ClassWithStringAndIntProperties);
-        public Type DeserialiseAs => typeof(ClassWithStringAndIntPropertiesWithMissingKeyAttribute);
-        public object Value => new ClassWithStringAndIntProperties { Key = 123, ID = "ABC" };
+        public Type SerialiseAs => typeof(ClassWithIntAndStringProperties);
+        public Type DeserialiseAs => typeof(ClassWithIntAndStringPropertiesWithMissingKeyAttribute);
+        public object Value => new ClassWithIntAndStringProperties { Key = 123, ID = "ABC" };
     }
 }

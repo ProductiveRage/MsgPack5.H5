@@ -5,8 +5,8 @@ namespace MessagePack.Tests.SharedTestItems.Failures
 {
     internal sealed class RepeatedTypesInDestinationType : ITestItem
     {
-        public Type SerialiseAs => typeof(ClassWithStringAndIntProperties);
-        public Type DeserialiseAs => typeof(ClassWithStringAndIntPropertiesWithRepeatedKeys);
-        public object Value => new ClassWithStringAndIntProperties { Key = 123, ID = "ABC" };
+        public Type SerialiseAs => typeof(ClassWithIntAndStringProperties);
+        public Type DeserialiseAs => typeof(ClassWithIntAndStringPropertiesWithRepeatedKeys);
+        public object Value => new ClassWithIntAndStringProperties { Key = 123, ID = "ABC" };
     }
 }
