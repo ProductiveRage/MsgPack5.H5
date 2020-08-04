@@ -31,15 +31,15 @@ namespace MessagePack
             // If the value is null then there's not much we can hopefully - hopefully it's a reference type (which will be fine) or it's a value type with an operator that can handle null (if not, it's correct to fail)
             if (value is null)
             {
-                // TODO [2020-07-24 DWR]: This is a simple check to handle some obvious fail cases - I need to investigate more whether MessagePack supports casting null to other Value Types, perhaps via static operators
-                if (TreatAsPrimitive(type))
-                    throw new MessagePackSerializationException(type);
-
+                // Nullable<> gets special treatment and IS allowed to be null but you couldn't write your own version of it and have an implicit (or explicit) cast operator that would translate null into an instance of a struct, that
+                // isn't supported by the .NET library
                 if (GetInnerTypeOfNullableIfTypeIsNullable(type) is object)
                     return null;
 
-                if (!type.IsValueType)
-                    return null;
+                if (type.IsValueType)
+                    throw new MessagePackSerializationException(type);
+
+                return null;
             }
 
             // If the value is directly assignable then we don't need to do anything other than cast it directly
@@ -60,7 +60,6 @@ namespace MessagePack
 
             // If the target type is a nullable and the value isn't null (which we know it isn't, since that was checked for at the top of this method) then get the inner type of the nullable and try to cast the value to THAT because
             // trying to cast a byte to a Nullable<int> will fail but casting a byte to an int will succeed and then we can cast THAT to Nullable<int> and all will be well
-            // ^ TODO: Update this comment?
             var innerTypeIfTypeIsNullable = GetInnerTypeOfNullableIfTypeIsNullable(type);
             if (innerTypeIfTypeIsNullable is object)
                 return Convert(value, innerTypeIfTypeIsNullable);

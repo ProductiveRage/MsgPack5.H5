@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Failures\ConstructorWithTooManyParameters.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Failures\CastOperatorsAreNotSupported.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\NoPublicConstructor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\MultipleSerializationConstructors.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\MissingMessagePackObjectAttribute.cs" />
