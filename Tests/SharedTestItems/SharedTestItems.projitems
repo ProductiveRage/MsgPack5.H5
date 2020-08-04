@@ -18,10 +18,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)Failures\DeserialiseNullIntoInt.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\DeserialiseIntToString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestEmptyIEnumerableOfString.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestNullEmptyIntStringDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestNullStringArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestEmptyStringArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestNullIEnumerableOfString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedIEnumerableOfString.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestEmptyIntStringDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedIntStringDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedStringArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\ImmutableClasses\TestClassWithIntProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\MutableClasses\TestClassWithDictionaryProperty.cs" />
