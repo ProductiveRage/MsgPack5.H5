@@ -53,15 +53,6 @@ namespace MessagePack
 
         private static Func<IArrayDataDecoder> GetArrayDecoderBuilderWhereArrayElementsAreMembersOfExpectedType(Type expectedType)
         {
-            // TODO: Need to handle initialisation-by-constructor (after constructor is called, member setters will still be attempted)
-            //
-            //  0. If there are multiple [SerializationConstructor] constructors then it's an error case
-            //  1. If there is a [SerializationConstructor] constructor then it will attempt to use that, which may result in an exception if the values can not be cast
-            //  2. If there is no [SerializationConstructor] constructor then it will look for the constructor where the most parameters can be populated from the available values
-            //     - Default value parameters do not appear to be supported by the .NET version
-            //     - implicit/explicit operators on types are not supported
-            //     - Simple casts are supported; eg. int -> double, string[] -> IEnumerable<string> or List<string>
-
             var allPublicConstructors = expectedType.GetConstructors();
             if (!allPublicConstructors.Any())
                 throw new MessagePackSerializationException(expectedType, new NoAccessibleConstructorsException(expectedType));
@@ -70,22 +61,37 @@ namespace MessagePack
             if (attributeConstructors.Length > 1)
                 throw new MessagePackSerializationException(expectedType, new TypeWithMultipleSerializationConstructorsException(expectedType));
 
-            // TODO: When picking a constructor, there HAVE to be key'd members that correspond to every parameter in that constructor otherwise the .NET library will fail
-            //       - Consider this when picking the "best" constructor to use (the maxKey may be two, suggesting a constructor with three argument is fine, but if there are only key'd members 0 and 2 then this will fail)
-
             if (attributeConstructors.Length == 1)
                 return GetDecoderBuilderForNonAmbiguousConstructor(expectedType, attributeConstructors[0]);
 
-            // If there are zero constructors with a [SerializationConstructor] then we have a few possibilities -
-            //  1. There is only one and it is parameterless, this is the easiest (we just call it to get a new instance and then all of the work is done by the member setters)
-            //  2. There is only one and it has too many parameters to be satisfied, this is the second easiest (it's a failure case)
-            //  3. There is only one and the number of items in the array mean that it's possible that its parameters can be satisfied, this is the third easiest (we try to call it with the available values and see if they are compatible)
-            //  4. There are multiple constructors and we have to find the best match, this is the most complicated and expensive because we can only do this when we have the values and can try to see if they fit any if the constructor options
-            //     ^ TODO: This might NOT be that difficult, actually, the .NET library might fix it for a given type and NOT vary it based upon the data presented (the "best match" might be based solely upon the key'd members).. need to test
-            if (allPublicConstructors.Length == 1)
-                return GetDecoderBuilderForNonAmbiguousConstructor(expectedType, allPublicConstructors[0]);
+            // Try to find the best constructor - that's the one with the most parameters that can be satisfied by the key'd members (there need to be consecutive key'd members for each of the constructor parameters and the types of the members
+            // have to either precisely match the parameter types or be assignable to them - for example, an int[] member may be used to populate an IEnumerable<int> parameter but an int member may NOT be used to populate a double parameter)
+            var (keyedMemberLookup, maxConsecutiveKey, maxKey) = GetLookupForKeyMembers(expectedType);
+            var numberOfConsecutiveKeyMembers = maxConsecutiveKey.HasValue ? (maxConsecutiveKey.Value + 1) : 0;
+            foreach (var (constructor, constructorParameters) in allPublicConstructors.Select(publicConstructor => (publicConstructor, publicConstructor.GetParameters())).OrderByDescending(entry => entry.Item2.Length))
+            {
+                if (!constructorParameters.Any())
+                {
+                    // If we've ended up considering a parameterless constructor then life is easy, there are no further checks to perform
+                    return GetDecoderBuilderForNonAmbiguousConstructor(expectedType, constructor);
+                }
 
-            throw new NotImplementedException("Deserialising where there are multiple constructor options isn't supported yet"); // TODO
+                if (constructorParameters.Length > numberOfConsecutiveKeyMembers)
+                {
+                    // There must be key'd members for each parameter of the constructor - if the constructor takes three arguments and there are two key'd members that have index values 0 and 2 then that's not sufficient, we can't take assume
+                    // a default value for the missing index 1 value when trying to provider constructor arguments
+                    continue;
+                }
+
+                if (constructorParameters.Select((parameter, index) => parameter.ParameterType.IsAssignableFrom(keyedMemberLookup((uint)index).Type)).All(isMatch => isMatch))
+                {
+                    // If all of the constructor parameters can be satisfied by key'd members then we've found our best match
+                    return GetDecoderBuilderForNonAmbiguousConstructor(expectedType, constructor);
+                }
+            }
+
+            // If we got here then we couldn't find a constructor that we could use to deserialise an instance of destination type :(
+            throw new MessagePackSerializationException(expectedType, new NoCompatibleConstructorFoundException(expectedType));
         }
 
         private static Func<IArrayDataDecoder> GetDecoderBuilderForNonAmbiguousConstructor(Type expectedType, ConstructorInfo constructor)
@@ -109,7 +115,7 @@ namespace MessagePack
             }
 
             // Note: we know that maxKey will have a value here because.. TODO: Something about otherwise the .NET library would not support the type for de/serialising because the keyed members wouldn't match the constructor parameter count
-            return () => new ArrayDataDecoderWithKnownParameteredConstructor(constructor, keyedMemberLookup, maxKey.Value);
+            return () => new ArrayDataDecoderWithParameteredConstructor(constructor, keyedMemberLookup, maxKey.Value);
         }
 
         private static (Func<uint, MemberSummary> lookup, uint? maxConsecutiveKey, uint? maxKey) GetLookupForKeyMembers(Type expectedType)

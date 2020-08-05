@@ -32,6 +32,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedIntStringDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedStringArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\IncompatibleTypesInKeyedPropertyVsConstructorArgument.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\ImmutableClasses\TestClassWithMultipleValidConstructors.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\ImmutableClasses\TestClassWithObsoletedPropertySetByConstructor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\ImmutableClasses\TestClassWithIntPropertyToClassWithIntAndStringPropertiesViaConstructor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\ImmutableClasses\TestClassWithIntProperty.cs" />
