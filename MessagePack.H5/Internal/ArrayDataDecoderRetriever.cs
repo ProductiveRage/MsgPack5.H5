@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using H5;
 
 namespace MessagePack
 {
@@ -17,13 +16,12 @@ namespace MessagePack
         /// </summary>
         public static IArrayDataDecoder GetFor(Type expectedType, uint length)
         {
-            // TODO: Need to support other types - List<T>, etc..
             // TODO: Need to handle types that could be initialised with one of the supported types (array, List<T>, etc..) - potentially via constructor (such as for an ImmutableList)
 
             // If the expectedType is already an array then it's easy to work out how to populate it (this will happen if type param T given to MsgPack5Decoder's Decode was this array type)
             if (expectedType.IsArray)
             {
-                var getRank = Script.Write<Func<Type, int>>("((typeof(System) !== 'undefined') && System.Array) ? System.Array.getRank : null"); // H5-INTERNALS: The GetRank() method on array types is not available as it is in .NET, so jump into the JS
+                var getRank = H5.Script.Write<Func<Type, int>>("((typeof(System) !== 'undefined') && System.Array) ? System.Array.getRank : null"); // H5-INTERNALS: The GetRank() method on array types is not available as it is in .NET, so jump into the JS
                 if (getRank == null)
                     throw new Exception("No longer have acess to JS-based method System.Array.getRank - did an update of h5 change this?");
                 if (getRank(expectedType) != 1)
@@ -31,11 +29,21 @@ namespace MessagePack
                 return new ArrayDataDecoderForArray(expectedType.GetElementType(), length);
             }
 
-            // For IEnumerable<T> target, we can just use an array to satisfy it as the caller doesn't care what concrete type that it is
-            if (expectedType.IsGenericType && (expectedType.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
+            if (expectedType.IsGenericType)
             {
-                var elementType = expectedType.GetGenericArguments()[0];
-                return new ArrayDataDecoderForArray(elementType, length);
+                // For IEnumerable<T> target, we can just use an array to satisfy it as the caller doesn't care what concrete type that it is
+                if (expectedType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                {
+                    var elementType = expectedType.GetGenericArguments()[0];
+                    return new ArrayDataDecoderForArray(elementType, length);
+                }
+
+                // For all of these types, we can use a List<T>-emitting decoder
+                if ((expectedType.GetGenericTypeDefinition() == typeof(List<>)) || (expectedType.GetGenericTypeDefinition() == typeof(IList<>)) || (expectedType.GetGenericTypeDefinition() == typeof(IList<>)))
+                {
+                    var elementType = expectedType.GetGenericArguments()[0];
+                    return ArrayDataDecoderForList.ForType(elementType, length);
+                }
             }
 
             // If this isn't a [MessagePack] object then there isn't much more that we can do here
@@ -51,6 +59,9 @@ namespace MessagePack
             return arrayDataDecoderBuilder();
         }
 
+        /// <summary>
+        /// This is used where the expectedType is a class or struct where the members of the source array correspond to members (and/or constructor parameters) for it
+        /// </summary>
         private static Func<IArrayDataDecoder> GetArrayDecoderBuilderWhereArrayElementsAreMembersOfExpectedType(Type expectedType)
         {
             var allPublicConstructors = expectedType.GetConstructors();
