@@ -56,7 +56,7 @@ namespace MessagePack
         {
             // TODO: Need to handle initialisation-by-constructor (after constructor is called, member setters will still be attempted)
             //
-            //  0. If there are [SerializationConstructor] constructors then it's an error case
+            //  0. If there are multiple [SerializationConstructor] constructors then it's an error case
             //  1. If there is a [SerializationConstructor] constructor then it will attempt to use that, which may result in an exception if the values can not be cast
             //  2. If there is no [SerializationConstructor] constructor then it will look for the constructor where the most parameters can be populated from the available values
             //     - Default value parameters do not appear to be supported by the .NET version
@@ -88,7 +88,7 @@ namespace MessagePack
 
         private static Func<IArrayDataDecoder> GetDecoderBuilderForNonAmbiguousConstructor(Type expectedType, ConstructorInfo constructor)
         {
-            var (keyedMemberLookup, maxKey) = GetLookupForKeyMembers(expectedType);
+            var (keyedMemberLookup, maxConsecutiveKey, maxKey) = GetLookupForKeyMembers(expectedType);
 
             var constructorParameters = constructor.GetParameters();
             if (!constructorParameters.Any())
@@ -97,7 +97,9 @@ namespace MessagePack
             // In the .NET library, if a type that is instantiated by constructor is serialised and it had three properties and is then extended to add a new property then this will succeed with the original serialised content so
             // long as the new number of key'd members on the type is matched by the number of constructor parameters. So we could serialise an older version with three properties and successfully deserialise it into a newer version
             // that has properties, so long as the new version has four key'd members and four corresponding constructor parameters.
-            var numberOfValuesAvailableForConstructorParameters = maxKey.HasValue ? (maxKey.Value + 1) : 0;
+            // - Note: Constructors are only supported if there are key'd members that correspond to all of the arguments, so if there are only key'd members with index value 0 and 2 then a constructor with three arguments can NOT be
+            //         used because there is no key index 1 member on the type
+            var numberOfValuesAvailableForConstructorParameters = maxConsecutiveKey.HasValue ? (maxConsecutiveKey.Value + 1) : 0;
             if (constructorParameters.Length > numberOfValuesAvailableForConstructorParameters)
             {
                 // The .NET version doesn't support default constructor parameters, so it doesn't matter if we have enough values for all non-default construcftor parameters, we only need to compare the total number of parameters
@@ -108,7 +110,7 @@ namespace MessagePack
             return () => new ArrayDataDecoderWithKnownParameteredConstructor(constructor, keyedMemberLookup, maxKey.Value);
         }
 
-        private static (Func<uint, MemberSummary> lookup, uint? maxKey) GetLookupForKeyMembers(Type expectedType)
+        private static (Func<uint, MemberSummary> lookup, uint? maxConsecutiveKey, uint? maxKey) GetLookupForKeyMembers(Type expectedType)
         {
             var keyedMembers = new Dictionary<uint, MemberSummary>();
             var typeToExamine = expectedType;
@@ -160,9 +162,28 @@ namespace MessagePack
                 typeToExamine = typeToExamine.BaseType;
             }
 
+            // The maximum CONSECUTIVE key is important when trying to find the best constructor - if the keys are non-consecutive then only the ones that ARE may be used to satisfy constructor parameters
+            var allKeys = keyedMembers.Keys;
+            uint? maxConsecutiveKey = null;
+            foreach (var key in allKeys.OrderBy(key => key))
+            {
+                if (key == 0)
+                {
+                    maxConsecutiveKey = key;
+                    continue;
+                }
+                if (maxConsecutiveKey.HasValue && (key == (maxConsecutiveKey + 1)))
+                {
+                    maxConsecutiveKey = key;
+                    continue;
+                }
+                break;
+            }
+
             return (
                 index => keyedMembers.TryGetValue(index, out var memberInfo) ? memberInfo : null,
-                keyedMembers.Any() ? keyedMembers.Keys.Max() : (uint?)null
+                maxConsecutiveKey,
+                allKeys.Any() ? allKeys.Max() : (uint?)null
             );
         }
     }

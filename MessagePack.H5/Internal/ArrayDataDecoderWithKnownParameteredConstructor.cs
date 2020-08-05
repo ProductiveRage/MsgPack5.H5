@@ -11,10 +11,12 @@ namespace MessagePack
         private readonly ConstructorInfo _constructor;
         private readonly Func<uint, MemberSummary> _keyedMemberLookup;
         private readonly uint _maxKey;
+        private readonly ParameterInfo[] _constructorParameters;
         private readonly object[] _arrayBeingPopulated;
         public ArrayDataDecoderWithKnownParameteredConstructor(ConstructorInfo constructor, Func<uint, MemberSummary> keyedMemberLookup, uint maxKey)
         {
             _constructor = constructor ?? throw new ArgumentNullException(nameof(constructor));
+            _constructorParameters = constructor.GetParameters();
             _keyedMemberLookup = keyedMemberLookup ?? throw new ArgumentNullException(nameof(keyedMemberLookup));
             _maxKey = maxKey;
             _arrayBeingPopulated = new object[(int)(_maxKey + 1)];
@@ -31,7 +33,10 @@ namespace MessagePack
         {
             if (index <= _maxKey)
             {
-                var valueToSet = MsgPack5Decoder.Convert(value, _constructor.GetParameters()[index].ParameterType);
+                var requiredType = (index < _constructorParameters.Length)
+                    ? _constructorParameters[index].ParameterType
+                    : typeof(object);
+                var valueToSet = MsgPack5Decoder.Convert(value, requiredType);
                 _arrayBeingPopulated.SetValue(valueToSet, (int)index);
             }
         }

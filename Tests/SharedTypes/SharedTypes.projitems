@@ -14,6 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithIntAndStringPropertiesViaConstructor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithNonConsecutiveKeyProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithObsoletedPropertySetByConstructor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ClassWithRemovedPropertySetByConstructor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithNonConsecutiveKeyPropertiesSetByConstructor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithStringProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithByteProperty.cs" />
