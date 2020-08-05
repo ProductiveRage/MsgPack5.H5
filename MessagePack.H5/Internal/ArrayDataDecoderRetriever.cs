@@ -18,8 +18,7 @@ namespace MessagePack
         public static IArrayDataDecoder GetFor(Type expectedType, uint length)
         {
             // TODO: Need to support other types - List<T>, etc..
-            // TODO: Need to handle types that could be initialised with one of the supported types (array, List<T>, etc..) - either via constructor or through implicit/explicit operators(?)
-            // TODO: Should support types without ANY attributes? (I don't like the sound of it)
+            // TODO: Need to handle types that could be initialised with one of the supported types (array, List<T>, etc..) - potentially via constructor (such as for an ImmutableList)
 
             // If the expectedType is already an array then it's easy to work out how to populate it (this will happen if type param T given to MsgPack5Decoder's Decode was this array type)
             if (expectedType.IsArray)
@@ -70,6 +69,9 @@ namespace MessagePack
             var attributeConstructors = allPublicConstructors.Where(c => c.GetCustomAttributes(typeof(SerializationConstructorAttribute)).Any()).ToArray();
             if (attributeConstructors.Length > 1)
                 throw new MessagePackSerializationException(expectedType, new TypeWithMultipleSerializationConstructorsException(expectedType));
+
+            // TODO: When picking a constructor, there HAVE to be key'd members that correspond to every parameter in that constructor otherwise the .NET library will fail
+            //       - Consider this when picking the "best" constructor to use (the maxKey may be two, suggesting a constructor with three argument is fine, but if there are only key'd members 0 and 2 then this will fail)
 
             if (attributeConstructors.Length == 1)
                 return GetDecoderBuilderForNonAmbiguousConstructor(expectedType, attributeConstructors[0]);
@@ -153,8 +155,7 @@ namespace MessagePack
                     if (keyedMembers.TryGetValue(keyedMember.Key, out var existingMemberWithSameKey))
                     {
                         // TODO: Consider expanding support of this - if there are multiple members with the same Key value that are of the same type then should be easy enough; if there are
-                        // multiple members with the same Key value but the types are compatible then should also be able to support that; might even be able to handle extended interpretations
-                        // of "compatible" with implicit/explicit operators?
+                        // multiple members with the same Key value but the types are compatible then should also be able to support that (need to check what the .NET library does in this case)
                         throw new MessagePackSerializationException(expectedType, new RepeatedKeyValueException(expectedType, keyedMember.Key, (existingMemberWithSameKey.MemberInfo, keyedMember.MemberSummary.MemberInfo)));
                     }
                     keyedMembers.Add(keyedMember.Key, keyedMember.MemberSummary);
