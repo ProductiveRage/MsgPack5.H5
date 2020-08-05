@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithImplicitOperatorFromString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithIntAndStringViaConstructorArgumentsButOnlyOneIntProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithIntAndStringPropertiesViaConstructor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ClassWithIntPropertySetByConstructorWithIncompatibleType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithNonConsecutiveKeyProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithObsoletedPropertySetByConstructor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithRemovedPropertySetByConstructor.cs" />
