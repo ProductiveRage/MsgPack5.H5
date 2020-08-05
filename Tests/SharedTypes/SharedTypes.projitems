@@ -13,6 +13,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithIntAndStringViaConstructorArgumentsButOnlyOneIntProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithIntAndStringPropertiesViaConstructor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithIntPropertySetByConstructorWithIncompatibleType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ClassWithMultipleConstructorsButOnlyShortestIsValid.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ClassWithConstructorWhoseParameterTypeIsAssignableFromProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithNonConsecutiveKeyProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithObsoletedPropertySetByConstructor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClassWithRemovedPropertySetByConstructor.cs" />
