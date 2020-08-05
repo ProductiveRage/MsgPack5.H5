@@ -27,14 +27,14 @@ namespace UnitTestDataGenerator
                 throw new Exception("The specified project folder must already exist but it does not: " + projectFolderName);
             }
 
-            var allTestItemTypeNames = AppDomain.CurrentDomain.GetAssemblies()
+            var allTestItemTypes = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(a => a.GetTypes())
                 .Where(t => !t.IsAbstract && typeof(ITestItem).IsAssignableFrom(t))
                 .OrderBy(t => t.FullName);
             var testItemEntries = new List<(string testItemTypeNameLiteral, string byteArrayRepresentation, string alternateResultJson, string errorRepresentation)>();
-            foreach (var testItemTypeName in allTestItemTypeNames)
+            foreach (var testItemType in allTestItemTypes)
             {
-                var testItem = TestItemInstanceCreator.GetInstance(testItemTypeName.FullName);
+                var testItem = TestItemInstanceCreator.GetInstance(testItemType.FullName);
                 var serialised = MessagePackSerializer.Serialize(type: testItem.SerialiseAs, obj: testItem.Value);
                 string alternateResultJson, errorRepresentation;
                 try
