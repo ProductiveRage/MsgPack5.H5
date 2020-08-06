@@ -22,6 +22,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Failures\DeserialiseIntToString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\ConstructorArgumentsMustHaveKeyedPropertiesForEachArgument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestEmptyIEnumerableOfString.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestIntStringIDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestNullStringList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestNullEmptyIntStringDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestNullStringArray.cs" />

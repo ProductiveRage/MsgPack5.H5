@@ -17,6 +17,7 @@ namespace MessagePack
         public static IArrayDataDecoder GetFor(Type expectedType, uint length)
         {
             // TODO: Need to handle types that could be initialised with one of the supported types (array, List<T>, etc..) - potentially via constructor (such as for an ImmutableList)
+            // TODO: MessagePack-CSharp also handles "Custom implementations of ICollection<> or IDictionary<,> with a parameterless constructor" and "Custom implementations of ICollection or IDictionary with a parameterless constructor"
 
             // If the expectedType is already an array then it's easy to work out how to populate it (this will happen if type param T given to MsgPack5Decoder's Decode was this array type)
             if (expectedType.IsArray)

@@ -302,17 +302,21 @@ namespace MessagePack
 
         private DecodeResult DecodeMap(IBuffer buf, uint initialOffset, uint length, uint headerLength, Type expectedType)
         {
-            var dictionaryType = expectedType;
-            while (!dictionaryType.IsGenericType || (dictionaryType.GetGenericTypeDefinition() != typeof(Dictionary<,>)))
-            {
-                dictionaryType = dictionaryType.BaseType;
-                if (dictionaryType == null)
-                    throw new Exception("Unable to deserialise to type: " + expectedType); // TODO: More specific exception
-            }
+            // TODO: MessagePack-CSharp also handles "Custom implementations of ICollection<> or IDictionary<,> with a parameterless constructor" and "Custom implementations of ICollection or IDictionary with a parameterless constructor"
+            if (!expectedType.IsGenericType)
+                throw new MessagePackSerializationException(expectedType);
 
-            var dictionaryTypeArgs = dictionaryType.GetGenericArguments();
-            var keyType = dictionaryTypeArgs[0];
-            var valueType = dictionaryTypeArgs[1];
+            Type dictionaryType;
+            var genericTypeArguments = expectedType.GetGenericArguments();
+            if (expectedType.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+                dictionaryType = expectedType;
+            else if (expectedType.GetGenericTypeDefinition() == typeof(IDictionary<,>))
+                dictionaryType = typeof(Dictionary<,>).MakeGenericType(genericTypeArguments);
+            else
+                throw new MessagePackSerializationException(expectedType);
+
+            var keyType = genericTypeArguments[0];
+            var valueType = genericTypeArguments[1];
             var dictionary = (IDictionary)Activator.CreateInstance(dictionaryType);
             var offset = initialOffset;
             for (uint i = 0; i < length; i++)
