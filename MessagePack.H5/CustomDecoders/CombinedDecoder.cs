@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace MessagePack
 {
-    public sealed class CombinedDecoder
+    public sealed class CombinedDecoder : ICustomDecoder
     {
         private readonly ICustomDecoder[] _decoders;
         public CombinedDecoder(IEnumerable<ICustomDecoder> decoders)
@@ -17,7 +17,7 @@ namespace MessagePack
                 throw new ArgumentException("null reference encountered", nameof(decoders));
         }
 
-        public MsgPack5Decoder.Decoder GetDecoder(sbyte typeCode)
+        public MsgPack5Decoder.Decoder TryToGetDecoder(sbyte typeCode)
         {
             foreach (var potentialDecoder in _decoders)
             {
