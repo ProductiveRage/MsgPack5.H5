@@ -8,16 +8,18 @@ namespace MessagePack
     /// </summary>
     internal static class ArrayDataDecoderForList
     {
-        public static IArrayDataDecoder ForType(Type elementType, uint length)
+        public static IArrayDataDecoder ForType(Type elementType, uint length, Func<object, Type, object> convert)
         {
             if (elementType is null)
                 throw new ArgumentNullException(nameof(elementType));
+            if (convert is null)
+                throw new ArgumentNullException(nameof(convert));
 
             var decoderType = typeof(ArrayDataDecoderForList<>).MakeGenericType(new[] { elementType });
-            var constructor = decoderType.GetConstructor(new[] { typeof(Type), typeof(uint) });
+            var constructor = decoderType.GetConstructor(new[] { typeof(Type), typeof(uint), typeof(Func<object, Type, object>) });
             if (constructor is null)
                 throw new Exception($"Failed to retrieve expected constructor for {nameof(ArrayDataDecoderForList)} - this shouldn't happen");
-            return (IArrayDataDecoder)constructor.Invoke(elementType, length);
+            return (IArrayDataDecoder)constructor.Invoke(elementType, length, convert);
         }
     }
 
@@ -27,10 +29,13 @@ namespace MessagePack
     internal sealed class ArrayDataDecoderForList<T> : IArrayDataDecoder
     {
         private readonly Type _elementType;
+        private readonly Func<object, Type, object> _convert;
         private readonly List<T> _listBeingPopulated;
-        public ArrayDataDecoderForList(Type elementType, uint length)
+        public ArrayDataDecoderForList(Type elementType, uint length, Func<object, Type, object> convert)
         {
             _elementType = elementType ?? throw new ArgumentNullException(nameof(elementType));
+            _convert = convert ?? throw new ArgumentNullException(nameof(convert));
+
             _listBeingPopulated = new List<T>(capacity: (int)length);
 
             // Setting a capacity on the list just provides information to it as to how it is expected to grow, it doesn't actually create a list with that many items already in it
@@ -42,7 +47,7 @@ namespace MessagePack
 
         public void SetValueAtIndex(uint index, object value)
         {
-            var valueToSet = MsgPack5Decoder.Convert(value, _elementType);
+            var valueToSet = _convert(value, _elementType);
             _listBeingPopulated[(int)index] = H5.Script.Write<T>("{0}", valueToSet);
         }
 

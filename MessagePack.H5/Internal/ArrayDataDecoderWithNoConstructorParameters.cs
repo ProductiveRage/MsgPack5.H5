@@ -8,8 +8,9 @@ namespace MessagePack
     internal sealed class ArrayDataDecoderWithNoConstructorParameters : IArrayDataDecoder
     {
         private readonly Func<uint, MemberSummary> _keyedMemberLookup;
+        private readonly Func<object, Type, object> _convert;
         private readonly object _instanceBeingPopulated;
-        public ArrayDataDecoderWithNoConstructorParameters(Type type, Func<uint, MemberSummary> keyedMemberLookup)
+        public ArrayDataDecoderWithNoConstructorParameters(Type type, Func<uint, MemberSummary> keyedMemberLookup, Func<object, Type, object> convert)
         {
             if (type is null)
                 throw new ArgumentNullException(nameof(type));
@@ -18,6 +19,8 @@ namespace MessagePack
                 throw new ArgumentException("must have an accessible parameterless constructor", nameof(type));
 
             _keyedMemberLookup = keyedMemberLookup ?? throw new ArgumentNullException(nameof(keyedMemberLookup));
+            _convert = convert ?? throw new ArgumentNullException(nameof(convert));
+
             _instanceBeingPopulated = constructor.Invoke(new object[0]);
         }
 
@@ -28,7 +31,7 @@ namespace MessagePack
 
         public void SetValueAtIndex(uint index, object value)
         {
-            var valueToSet = MsgPack5Decoder.Convert(value, GetExpectedTypeForIndex(index));
+            var valueToSet = _convert(value, GetExpectedTypeForIndex(index));
             _keyedMemberLookup(index)?.SetIfWritable(_instanceBeingPopulated, valueToSet);
         }
 

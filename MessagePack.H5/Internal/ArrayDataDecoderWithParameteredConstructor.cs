@@ -11,14 +11,17 @@ namespace MessagePack
         private readonly ConstructorInfo _constructor;
         private readonly Func<uint, MemberSummary> _keyedMemberLookup;
         private readonly uint _maxKey;
+        private readonly Func<object, Type, object> _convert;
         private readonly ParameterInfo[] _constructorParameters;
         private readonly object[] _arrayBeingPopulated;
-        public ArrayDataDecoderWithParameteredConstructor(ConstructorInfo constructor, Func<uint, MemberSummary> keyedMemberLookup, uint maxKey)
+        public ArrayDataDecoderWithParameteredConstructor(ConstructorInfo constructor, Func<uint, MemberSummary> keyedMemberLookup, uint maxKey, Func<object, Type, object> convert)
         {
             _constructor = constructor ?? throw new ArgumentNullException(nameof(constructor));
-            _constructorParameters = constructor.GetParameters();
             _keyedMemberLookup = keyedMemberLookup ?? throw new ArgumentNullException(nameof(keyedMemberLookup));
             _maxKey = maxKey;
+            _convert = convert ?? throw new ArgumentNullException(nameof(convert));
+
+            _constructorParameters = constructor.GetParameters();
             _arrayBeingPopulated = new object[(int)(_maxKey + 1)];
         }
 
@@ -35,7 +38,7 @@ namespace MessagePack
                 var requiredType = (index < _constructorParameters.Length)
                     ? _constructorParameters[index].ParameterType
                     : typeof(object);
-                var valueToSet = MsgPack5Decoder.Convert(value, requiredType);
+                var valueToSet = _convert(value, requiredType);
                 _arrayBeingPopulated.SetValue(valueToSet, (int)index);
             }
         }
@@ -45,7 +48,7 @@ namespace MessagePack
             var instance = _constructor.Invoke(_arrayBeingPopulated);
             for (uint index = 0; index <= _maxKey; index++)
             {
-                var valueToSet = MsgPack5Decoder.Convert(_arrayBeingPopulated[(int)index], GetExpectedTypeForIndex(index));
+                var valueToSet = _convert(_arrayBeingPopulated[(int)index], GetExpectedTypeForIndex(index));
                 _keyedMemberLookup(index)?.SetIfWritable(instance, valueToSet);
             }
             return instance;

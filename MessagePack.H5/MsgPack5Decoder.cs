@@ -26,7 +26,7 @@ namespace MessagePack
             return (T)Convert(result.Value, typeof(T));
         }
 
-        internal static object Convert(object value, Type type)
+        private object Convert(object value, Type type)
         {
             // If the value is null then there's not much we can hopefully - hopefully it's a reference type (which will be fine) or it's a value type with an operator that can handle null (if not, it's correct to fail)
             if (value is null)
@@ -268,7 +268,7 @@ namespace MessagePack
                 }
             }
 
-            var decoder = ArrayDataDecoderRetriever.GetFor(expectedType, length);
+            var decoder = ArrayDataDecoderRetriever.GetFor(expectedType, length, Convert);
             try
             {
                 var numberOfBytesConsumed = DecodeArrayInternal(buf, initialOffset, length, headerLength, decoder.GetExpectedTypeForIndex, decoder.SetValueAtIndex);

@@ -14,9 +14,13 @@ namespace MessagePack
         /// array then this is a simple task but arrays of values are also used to represent the data for objects where members have Key attributes and, in that case, the returned ArrayDataDecoder will set the individual properties
         /// on the target instance as the values in the array are read from the data stream.
         /// </summary>
-        public static IArrayDataDecoder GetFor(Type expectedType, uint length)
+        public static IArrayDataDecoder GetFor(Type expectedType, uint length, Func<object, Type, object> convert)
         {
-            // TODO: Need to handle types that could be initialised with one of the supported types (array, List<T>, etc..) - potentially via constructor (such as for an ImmutableList)
+            if (expectedType is null)
+                throw new ArgumentNullException(nameof(expectedType));
+            if (convert is null)
+                throw new ArgumentNullException(nameof(convert));
+
             // TODO: MessagePack-CSharp also handles "Custom implementations of ICollection<> or IDictionary<,> with a parameterless constructor" and "Custom implementations of ICollection or IDictionary with a parameterless constructor"
 
             // If the expectedType is already an array then it's easy to work out how to populate it (this will happen if type param T given to MsgPack5Decoder's Decode was this array type)
@@ -27,7 +31,7 @@ namespace MessagePack
                     throw new Exception("No longer have acess to JS-based method System.Array.getRank - did an update of h5 change this?");
                 if (getRank(expectedType) != 1)
                     throw new NotSupportedException("Can not deserialise to arrays if they're not one dimensional"); // TODO: Need to handle multi-dimensional arrays as specified in https://github.com/neuecc/MessagePack-CSharp#built-in-supported-types
-                return new ArrayDataDecoderForArray(expectedType.GetElementType(), length);
+                return new ArrayDataDecoderForArray(expectedType.GetElementType(), length, convert);
             }
 
             if (expectedType.IsGenericType)
@@ -36,14 +40,14 @@ namespace MessagePack
                 if (expectedType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                 {
                     var elementType = expectedType.GetGenericArguments()[0];
-                    return new ArrayDataDecoderForArray(elementType, length);
+                    return new ArrayDataDecoderForArray(elementType, length, convert);
                 }
 
                 // For all of these types, we can use a List<T>-emitting decoder
                 if ((expectedType.GetGenericTypeDefinition() == typeof(List<>)) || (expectedType.GetGenericTypeDefinition() == typeof(IList<>)) || (expectedType.GetGenericTypeDefinition() == typeof(IList<>)))
                 {
                     var elementType = expectedType.GetGenericArguments()[0];
-                    return ArrayDataDecoderForList.ForType(elementType, length);
+                    return ArrayDataDecoderForList.ForType(elementType, length, convert);
                 }
             }
 
@@ -54,7 +58,7 @@ namespace MessagePack
             // If the expectedType is NOT an array and it IS a [MessagePack] object then presume that we can dig into its members and look have [Key(..)] attributes and that their values will correspond to indexed values in the array
             if (!_decoderBuildersForNestedTypes.TryGetValue(expectedType, out var arrayDataDecoderBuilder))
             {
-                arrayDataDecoderBuilder = GetArrayDecoderBuilderWhereArrayElementsAreMembersOfExpectedType(expectedType);
+                arrayDataDecoderBuilder = GetArrayDecoderBuilderWhereArrayElementsAreMembersOfExpectedType(expectedType, convert);
                 _decoderBuildersForNestedTypes[expectedType] = arrayDataDecoderBuilder;
             }
             return arrayDataDecoderBuilder();
@@ -63,7 +67,7 @@ namespace MessagePack
         /// <summary>
         /// This is used where the expectedType is a class or struct where the members of the source array correspond to members (and/or constructor parameters) for it
         /// </summary>
-        private static Func<IArrayDataDecoder> GetArrayDecoderBuilderWhereArrayElementsAreMembersOfExpectedType(Type expectedType)
+        private static Func<IArrayDataDecoder> GetArrayDecoderBuilderWhereArrayElementsAreMembersOfExpectedType(Type expectedType, Func<object, Type, object> convert)
         {
             var allPublicConstructors = expectedType.GetConstructors();
             if (!allPublicConstructors.Any())
@@ -74,7 +78,7 @@ namespace MessagePack
                 throw new MessagePackSerializationException(expectedType, new TypeWithMultipleSerializationConstructorsException(expectedType));
 
             if (attributeConstructors.Length == 1)
-                return GetDecoderBuilderForNonAmbiguousConstructor(expectedType, attributeConstructors[0]);
+                return GetDecoderBuilderForNonAmbiguousConstructor(expectedType, attributeConstructors[0], convert);
 
             // Try to find the best constructor - that's the one with the most parameters that can be satisfied by the key'd members (there need to be consecutive key'd members for each of the constructor parameters and the types of the members
             // have to either precisely match the parameter types or be assignable to them - for example, an int[] member may be used to populate an IEnumerable<int> parameter but an int member may NOT be used to populate a double parameter)
@@ -85,7 +89,7 @@ namespace MessagePack
                 if (!constructorParameters.Any())
                 {
                     // If we've ended up considering a parameterless constructor then life is easy, there are no further checks to perform
-                    return GetDecoderBuilderForNonAmbiguousConstructor(expectedType, constructor);
+                    return GetDecoderBuilderForNonAmbiguousConstructor(expectedType, constructor, convert);
                 }
 
                 if (constructorParameters.Length > numberOfConsecutiveKeyMembers)
@@ -98,7 +102,7 @@ namespace MessagePack
                 if (constructorParameters.Select((parameter, index) => parameter.ParameterType.IsAssignableFrom(keyedMemberLookup((uint)index).Type)).All(isMatch => isMatch))
                 {
                     // If all of the constructor parameters can be satisfied by key'd members then we've found our best match
-                    return GetDecoderBuilderForNonAmbiguousConstructor(expectedType, constructor);
+                    return GetDecoderBuilderForNonAmbiguousConstructor(expectedType, constructor, convert);
                 }
             }
 
@@ -106,13 +110,13 @@ namespace MessagePack
             throw new MessagePackSerializationException(expectedType, new NoCompatibleConstructorFoundException(expectedType));
         }
 
-        private static Func<IArrayDataDecoder> GetDecoderBuilderForNonAmbiguousConstructor(Type expectedType, ConstructorInfo constructor)
+        private static Func<IArrayDataDecoder> GetDecoderBuilderForNonAmbiguousConstructor(Type expectedType, ConstructorInfo constructor, Func<object, Type, object> convert)
         {
             var (keyedMemberLookup, maxConsecutiveKey, maxKey) = GetLookupForKeyMembers(expectedType);
 
             var constructorParameters = constructor.GetParameters();
             if (!constructorParameters.Any())
-                return () => new ArrayDataDecoderWithNoConstructorParameters(expectedType, keyedMemberLookup);
+                return () => new ArrayDataDecoderWithNoConstructorParameters(expectedType, keyedMemberLookup, convert);
 
             // In the .NET library, if a type that is instantiated by constructor is serialised and it had three properties and is then extended to add a new property then this will succeed with the original serialised content so
             // long as the new number of key'd members on the type is matched by the number of constructor parameters. So we could serialise an older version with three properties and successfully deserialise it into a newer version
@@ -127,7 +131,7 @@ namespace MessagePack
             }
 
             // Note: we know that maxKey will have a value here because.. TODO: Something about otherwise the .NET library would not support the type for de/serialising because the keyed members wouldn't match the constructor parameter count
-            return () => new ArrayDataDecoderWithParameteredConstructor(constructor, keyedMemberLookup, maxKey.Value);
+            return () => new ArrayDataDecoderWithParameteredConstructor(constructor, keyedMemberLookup, maxKey.Value, convert);
         }
 
         private static (Func<uint, MemberSummary> lookup, uint? maxConsecutiveKey, uint? maxKey) GetLookupForKeyMembers(Type expectedType)

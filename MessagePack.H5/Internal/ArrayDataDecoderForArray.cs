@@ -8,10 +8,13 @@ namespace MessagePack
     internal sealed class ArrayDataDecoderForArray : IArrayDataDecoder
     {
         private readonly Type _elementType;
+        private readonly Func<object, Type, object> _convert;
         private readonly Array _arrayBeingPopulated;
-        public ArrayDataDecoderForArray(Type elementType, uint length)
+        public ArrayDataDecoderForArray(Type elementType, uint length, Func<object, Type, object> convert)
         {
             _elementType = elementType ?? throw new ArgumentNullException(nameof(elementType));
+            _convert = convert ?? throw new ArgumentNullException(nameof(convert));
+
             _arrayBeingPopulated = Array.CreateInstance(elementType, (int)length);
         }
 
@@ -19,7 +22,7 @@ namespace MessagePack
 
         public void SetValueAtIndex(uint index, object value)
         {
-            var valueToSet = MsgPack5Decoder.Convert(value, _elementType);
+            var valueToSet = _convert(value, _elementType);
             _arrayBeingPopulated.SetValue(valueToSet, (int)index);
         }
 
