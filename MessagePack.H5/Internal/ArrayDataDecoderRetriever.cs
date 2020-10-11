@@ -34,6 +34,7 @@ namespace MessagePack
                 return new ArrayDataDecoderForArray(expectedType.GetElementType(), length, convert);
             }
 
+            // Handle the common BCL generic list types
             if (expectedType.IsGenericType)
             {
                 // For IEnumerable<T> target, we can just use an array to satisfy it as the caller doesn't care what concrete type that it is
@@ -48,6 +49,52 @@ namespace MessagePack
                 {
                     var elementType = expectedType.GetGenericArguments()[0];
                     return ArrayDataDecoderForList.ForType(elementType, length, convert);
+                }
+            }
+
+            // If the target ISN'T a super-common BCL list type then try a couple of other approaches if it LOOKS like a list type (if it implements IEnumerable-of-something and only if there is a SINGLE IEnumerable-of-something
+            // interface because, otherwise, we don't know which is the item type of the list; this applies to types like ImmutableList<T> and might work with ImmutableDictionary<TKey, TValue> since that class only implements
+            // IEnumerable<KeyValuePair<TKey, TValue>>, note that it doesn't matter if it implements the non-generic IEnumerable interface; we'll ignore that)
+            //
+            //  1. See if there is a constructor that will accept an IEnumerable-of-something and use that to instantiate the type
+            //  2. See if there is a static "Empty" property and an "AddRange" method that takes an IEnumerable-of-something and use those to instantiate the type
+            //
+            // TODO [2020-10-02 DWR]: Would there be any benefit to caching these type generators? Need to do some profiling since reflection is so different in h5 compared to .NET
+            var enumerableOfSomethingImplementations = expectedType
+                .GetInterfaces()
+                .Where(i => i.IsGenericType && (i.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
+                .ToArray();
+            if (enumerableOfSomethingImplementations.Length == 1)
+            {
+                // Approach 1: Look for a constructor that will take an IEnumerable-of-something
+                var elementType = enumerableOfSomethingImplementations[0].GetGenericArguments()[0];
+                var constructorParameterTypeToOffer = elementType.MakeArrayType(); // By trying to find a constructor that will take an array, we're covering the cases of constructors that take arrays AND that take IEnumerable<T> (TODO: Add unit tests for both scenarios)
+                var correspondingConstructor = expectedType
+                    .GetConstructors()
+                    .FirstOrDefault(ctor =>
+                    {
+                        var ctorParams = ctor.GetParameters();
+                        if (!ctorParams.Any())
+                            return false;
+
+                        if (!ctorParams[0].ParameterType.IsAssignableFrom(constructorParameterTypeToOffer))
+                            return false;
+
+                        return (ctorParams.Length == 1) || ctorParams.Skip(1).All(p => p.IsOptional);
+                    });
+                if (correspondingConstructor is object)
+                    return new ArrayDataDecoderForImmutableList(toAdd => correspondingConstructor.Invoke(arguments: new object[] { toAdd }), elementType, length, convert);
+
+                // Approach 2: Look for a static Empty property that and an instance AddRange method that takes an IEnumerable-of-something
+                var emptyProperty = expectedType.GetProperty("Empty", BindingFlags.Public | BindingFlags.Static);
+                if ((emptyProperty is object) && !emptyProperty.GetIndexParameters().Any())
+                {
+                    var addRangeMethod = expectedType.GetMethod("AddRange", BindingFlags.Public | BindingFlags.Instance, new[] { typeof(IEnumerable<>).MakeGenericType(new[] { elementType }) });
+                    if ((addRangeMethod is object) && expectedType.IsAssignableFrom(addRangeMethod.ReturnType))
+                    {
+                        var emptyInstance = emptyProperty.GetValue(null);
+                        return new ArrayDataDecoderForImmutableList(toAdd => addRangeMethod.Invoke(emptyInstance, new object[] { toAdd }), elementType, length, convert);
+                    }
                 }
             }
 

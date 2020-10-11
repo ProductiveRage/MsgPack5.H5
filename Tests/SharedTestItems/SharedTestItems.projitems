@@ -33,6 +33,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestIntStringDictionaryToEnumStringDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedIntStringDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestEmptyStringList.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestNullStringImmutableList.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestEmptyStringImmutableList.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedStringImmutableList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedStringList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedStringArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\IncompatibleTypesInKeyedPropertyVsConstructorArgument.cs" />
