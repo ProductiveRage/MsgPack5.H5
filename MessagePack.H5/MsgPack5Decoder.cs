@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using H5;
 using static H5.Core.es5;
 
 namespace MessagePack
@@ -23,7 +24,10 @@ namespace MessagePack
         {
             var result = Decode(buf, 0, typeof(T));
             buf.Consume(result.NumberOfBytesConsumed);
-            return (T)Convert(result.Value, typeof(T));
+
+            // We know that Convert will return the correct type (or it will throw), so we can tell h5 that we're returning the correct type here instead of doing another unnecessary cast (particularly since the runtime casting in h5 can
+            // introduce problems - this is necessary for the "ReadOnlyArray" unit tests to pass since that is a compile-time-only construct and can't be type-checked at runtime)
+            return Script.Write<T>("{0}", Convert(result.Value, typeof(T)));
         }
 
         private object Convert(object value, Type type)
