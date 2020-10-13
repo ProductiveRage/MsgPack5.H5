@@ -17,7 +17,7 @@
     <Copyright>(c) Copyright 2020 Productive Rage</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/ProductiveRage/MsgPack5.H5</PackageProjectUrl>
-    <PackageIconUrl>https://secure.gravatar.com/avatar/6a1f781d4d5e2d50dcff04f8f049767a?s=200</PackageIconUrl>
+    <PackageIcon>ProductiveRage.jpg</PackageIcon>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     
     <Description>A library to deserialise 'MessagePack-CSharp' binary data in the browser into C# types when using the h5 C#-to-JS transpiler</Description>
@@ -34,6 +34,10 @@
 
   <ItemGroup>
     <ContentWithTargetPath Include="H5\*.*" CopyToOutputDirectory="PreserveNewest" TargetPath="%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="ProductiveRage.jpg" Link="ProductiveRage.jpg" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
 
 </Project>
