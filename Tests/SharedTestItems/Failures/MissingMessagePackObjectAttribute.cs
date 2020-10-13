@@ -1,12 +1,9 @@
-﻿using System;
-using MessagePack.Tests.SharedTypes;
+﻿using MessagePack.Tests.SharedTypes;
 
 namespace MessagePack.Tests.SharedTestItems.Failures
 {
-    internal sealed class MissingMessagePackObjectAttribute : ITestItem
+    internal sealed class MissingMessagePackObjectAttribute : FailureTestItem<ClassWithIntAndStringProperties, ClassThatIsNotMessagePackObject>
     {
-        public Type SerialiseAs => typeof(ClassWithIntAndStringProperties);
-        public Type DeserialiseAs => typeof(ClassThatIsNotMessagePackObject);
-        public object Value => new ClassWithIntAndStringProperties { Key = 123, ID = "ABC" };
+        public MissingMessagePackObjectAttribute() : base(new ClassWithIntAndStringProperties { Key = 123, ID = "ABC" }) { }
     }
 }

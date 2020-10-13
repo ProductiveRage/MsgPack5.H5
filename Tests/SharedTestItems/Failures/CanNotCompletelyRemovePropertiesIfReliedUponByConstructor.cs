@@ -1,5 +1,4 @@
-﻿using System;
-using MessagePack.Tests.SharedTypes;
+﻿using MessagePack.Tests.SharedTypes;
 
 namespace MessagePack.Tests.SharedTestItems.Failures
 {
@@ -8,10 +7,8 @@ namespace MessagePack.Tests.SharedTestItems.Failures
     /// long as the destination type is 'consistent', meaning that it has key'd properties that correspond to its constructor arguments (so if a property should be removed from the instantiated-via-constructor type then
     /// it can't be fully removed, it has to be kept but should be renamed to make it clear that it's not longer for use and marked Obsolete so that the compiler warns - like ClassWithObsoletedPropertySetByConstructor)
     /// </summary>
-    internal sealed class CanNotCompletelyRemovePropertiesIfReliedUponByConstructor : ITestItem
+    internal sealed class CanNotCompletelyRemovePropertiesIfReliedUponByConstructor : FailureTestItem<ClassWithNonConsecutiveKeyProperties, ClassWithRemovedPropertySetByConstructor>
     {
-        public Type SerialiseAs => typeof(ClassWithNonConsecutiveKeyProperties);
-        public Type DeserialiseAs => typeof(ClassWithRemovedPropertySetByConstructor);
-        public object Value => new ClassWithNonConsecutiveKeyProperties { Key = 123, ID = "ABC" };
+        public CanNotCompletelyRemovePropertiesIfReliedUponByConstructor() :  base(new ClassWithNonConsecutiveKeyProperties { Key = 123, ID = "ABC" }) { }
     }
 }

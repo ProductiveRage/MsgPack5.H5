@@ -1,11 +1,7 @@
-﻿using System;
-
-namespace MessagePack.Tests.SharedTestItems.Failures
+﻿namespace MessagePack.Tests.SharedTestItems.Failures
 {
-    internal sealed class DeserialiseNullIntoInt : ITestItem
+    internal sealed class DeserialiseNullIntoInt : FailureTestItem<object, int>
     {
-        public Type SerialiseAs => typeof(object);
-        public Type DeserialiseAs => typeof(int);
-        public object Value => null;
+        public DeserialiseNullIntoInt() : base(null) { }
     }
 }

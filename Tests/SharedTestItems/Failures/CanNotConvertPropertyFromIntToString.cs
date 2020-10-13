@@ -1,12 +1,9 @@
-﻿using System;
-using MessagePack.Tests.SharedTypes;
+﻿using MessagePack.Tests.SharedTypes;
 
 namespace MessagePack.Tests.SharedTestItems.Failures
 {
-    internal sealed class CanNotConvertPropertyFromIntToString : ITestItem
+    internal sealed class CanNotConvertPropertyFromIntToString : FailureTestItem<ClassWithByteProperty, ClassWithStringProperty>
     {
-        public Type SerialiseAs => typeof(ClassWithByteProperty);
-        public Type DeserialiseAs => typeof(ClassWithStringProperty);
-        public object Value => new ClassWithByteProperty { Key = 12 };
+        public CanNotConvertPropertyFromIntToString() : base(new ClassWithByteProperty { Key = 12 }) { }
     }
 }

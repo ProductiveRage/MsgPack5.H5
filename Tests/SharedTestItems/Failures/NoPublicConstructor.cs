@@ -1,12 +1,9 @@
-﻿using System;
-using MessagePack.Tests.SharedTypes;
+﻿using MessagePack.Tests.SharedTypes;
 
 namespace MessagePack.Tests.SharedTestItems.Failures
 {
-    internal sealed class NoPublicConstructor : ITestItem
+    internal sealed class NoPublicConstructor : FailureTestItem<ClassWithIntAndStringProperties, ClassWithNoPublicConstructor>
     {
-        public Type SerialiseAs => typeof(ClassWithIntAndStringProperties);
-        public Type DeserialiseAs => typeof(ClassWithNoPublicConstructor);
-        public object Value => new ClassWithIntAndStringProperties { Key = 123, ID = "ABC" };
+        public NoPublicConstructor() : base(new ClassWithIntAndStringProperties { Key = 123, ID = "ABC" }) { }
     }
 }
