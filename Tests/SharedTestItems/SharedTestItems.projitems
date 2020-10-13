@@ -23,6 +23,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Failures\ConstructorArgumentsMustHaveKeyedPropertiesForEachArgument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Failures\FailureTestItem`2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestEmptyIEnumerableOfString.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestNullStringReadOnlyArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestIntStringIDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestNullStringList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestNullEmptyIntStringDictionary.cs" />
@@ -36,6 +37,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestEmptyStringList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestNullStringImmutableList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestEmptyStringImmutableList.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestEmptyStringReadOnlyArray.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedStringReadOnlyArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedStringImmutableList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedStringList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Successes\Collections\TestPopulatedStringArray.cs" />

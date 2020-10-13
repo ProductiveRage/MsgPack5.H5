@@ -26,6 +26,7 @@ namespace UnitTests
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestEmptyStringArray", new byte[] { 144 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestEmptyStringImmutableList", new byte[] { 144 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestEmptyStringList", new byte[] { 144 }, null, null);
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestEmptyStringReadOnlyArray", new byte[] { 144 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestIntStringDictionaryToEnumStringDictionary", new byte[] { 130, 1, 166, 77, 111, 110, 100, 97, 121, 2, 167, 84, 117, 101, 115, 100, 97, 121 }, @"{""$type"":""System.Collections.Generic.Dictionary`2[[System.DayOfWeek],[System.String]]"",""Monday"":""Monday"",""Tuesday"":""Tuesday""}", null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestIntStringIDictionary", new byte[] { 130, 1, 166, 77, 111, 110, 100, 97, 121, 2, 167, 84, 117, 101, 115, 100, 97, 121 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestNullEmptyIntStringDictionary", new byte[] { 192 }, null, null);
@@ -33,11 +34,13 @@ namespace UnitTests
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestNullStringArray", new byte[] { 192 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestNullStringImmutableList", new byte[] { 192 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestNullStringList", new byte[] { 192 }, null, null);
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestNullStringReadOnlyArray", new byte[] { 192 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestPopulatedIEnumerableOfString", new byte[] { 146, 163, 97, 98, 99, 163, 100, 101, 102 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestPopulatedKeyStringDictionary", new byte[] { 130, 1, 163, 79, 110, 101, 2, 163, 84, 119, 111 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestPopulatedStringArray", new byte[] { 146, 163, 97, 98, 99, 163, 100, 101, 102 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestPopulatedStringImmutableList", new byte[] { 146, 163, 97, 98, 99, 163, 100, 101, 102 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestPopulatedStringList", new byte[] { 146, 163, 97, 98, 99, 163, 100, 101, 102 }, null, null);
+            yield return ("MessagePack.Tests.SharedTestItems.Successes.Collections.TestPopulatedStringReadOnlyArray", new byte[] { 146, 163, 97, 98, 99, 163, 100, 101, 102 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.ImmutableClasses.TestClassWithConstructorWhoseParameterTypeIsAssignableFromProperty", new byte[] { 145, 192 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.ImmutableClasses.TestClassWithIntProperty", new byte[] { 145, 123 }, null, null);
             yield return ("MessagePack.Tests.SharedTestItems.Successes.ImmutableClasses.TestClassWithIntPropertyToClassWithIntAndStringPropertiesViaConstructor", new byte[] { 145, 123 }, @"{""$type"":""MessagePack.Tests.SharedTypes.ClassWithIntAndStringPropertiesViaConstructor"",""Key"":123,""ID"":null}", null);

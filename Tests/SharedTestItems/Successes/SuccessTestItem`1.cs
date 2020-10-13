@@ -14,5 +14,9 @@ namespace MessagePack.Tests.SharedTestItems.Successes
         public Type SerialiseAs => typeof(T);
         public Type DeserialiseAs => typeof(T);
         object ITestItem.Value => Value;
+
+#if H5
+        public virtual Func<MsgPack5DecoderOptions, MsgPack5DecoderOptions> DecodeOptions => null;
+#endif
     }
 }

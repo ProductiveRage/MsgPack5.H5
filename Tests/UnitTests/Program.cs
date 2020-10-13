@@ -100,7 +100,7 @@ namespace UnitTests
             try
             {
                 var testItem = TestItemInstanceCreator.GetInstance(testItemDetails.FullName);
-                var decoder = GetTypedMessagePackSerializerDeserializeCall(testItem.DeserialiseAs);
+                var decoder = GetTypedMessagePackSerializerDeserializeCall(testItem.DeserialiseAs, testItem.DecodeOptions);
                 if (testItemDetails.ExpectedError is null)
                 {
                     var clone = decoder(testItemDetails.Serialised);
@@ -188,16 +188,20 @@ namespace UnitTests
         private static string GetHrefForFilteringToTest(string displayName) => $"?{_testFilterQueryStringName}={encodeURIComponent(displayName)}";
         private static string GetHrefForDisablingFiltering() => window.location.href.Split('?')[0];
 
-        private static Func<byte[], object> GetTypedMessagePackSerializerDeserializeCall(Type deserialiseAs)
+        private static Func<byte[], object> GetTypedMessagePackSerializerDeserializeCall(Type deserialiseAs, Func<MsgPack5DecoderOptions, MsgPack5DecoderOptions> options)
         {
-            var unboundDeserializeMethod = typeof(MessagePackSerializer).GetMethod(nameof(MessagePackSerializer.Deserialize), BindingFlags.Static | BindingFlags.Public, parameterTypes: new[] { typeof(byte[]) });
+            var deserialiser = MsgPack5Decoder.Default;
+            if (options is object)
+                deserialiser = deserialiser.WithOptions(options);
+
+            var unboundDeserializeMethod = deserialiser.GetType().GetMethod(nameof(MsgPack5Decoder.Decode), BindingFlags.Public | BindingFlags.Instance, parameterTypes: new[] { typeof(byte[]) });
             if (unboundDeserializeMethod is null)
-                throw new Exception("Internal error while trying to retrieve method to form a non-generic MessagePackSerializer.Deserialize call for unit test - this shouldn't be possible");
+                throw new Exception("Internal error while trying to retrieve method to form a non-generic MsgPack5Decoder.Deserialize call for unit test - this shouldn't be possible");
 
             var deserializeMethod = unboundDeserializeMethod.MakeGenericMethod(deserialiseAs);
             return serialised =>
             {
-                return deserializeMethod.Invoke(null, serialised);
+                return deserializeMethod.Invoke(deserialiser, serialised);
             };
         }
 
