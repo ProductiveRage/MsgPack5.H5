@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using H5;
 using static H5.Core.es5;
 
@@ -11,10 +12,28 @@ namespace MessagePack
     {
         public delegate object Decoder(IBuffer buffer, Type expectedType);
 
-        public static MsgPack5Decoder Default { get; } = new MsgPack5Decoder(DateTimeDecoder.Instance); // A custom decoder may be specified but the most common case for .NET payloads feels like the standard primitives plus complex type support PLUS DateTime (which is non-standard)
+        public static MsgPack5Decoder Default { get; } = new MsgPack5Decoder(MsgPack5DecoderOptions.Default);
 
-        private readonly ICustomDecoder _customDecoderIfAny;
-        public MsgPack5Decoder(ICustomDecoder customDecoder = null) => _customDecoderIfAny = customDecoder;
+        private readonly MsgPack5DecoderOptions _options;
+        private MsgPack5Decoder(MsgPack5DecoderOptions options)
+        {
+            if (options is null)
+                throw new ArgumentNullException(nameof(options));
+
+            _options = options;
+        }
+
+        public MsgPack5Decoder WithOptions(Func<MsgPack5DecoderOptions, MsgPack5DecoderOptions> optionsUpdater)
+        {
+            if (optionsUpdater is null)
+                throw new ArgumentNullException(nameof(optionsUpdater));
+
+            var newOptions = optionsUpdater(_options);
+            if (newOptions is null)
+                throw new ArgumentException("must not return a null instance", nameof(optionsUpdater));
+
+            return new MsgPack5Decoder(newOptions);
+        }
 
         public T Decode<T>(Uint8Array data) => Decode<T>(new Uint8ArrayBackedBuffer(data ?? throw new ArgumentNullException(nameof(data))));
         public T Decode<T>(ArrayBuffer data) => Decode<T>(new Uint8ArrayBackedBuffer(new Uint8Array(data ?? throw new ArgumentNullException(nameof(data)))));
@@ -47,7 +66,8 @@ namespace MessagePack
             }
 
             // If the value is directly assignable then we don't need to do anything other than cast it directly
-            if (type.IsAssignableFrom(value.GetType()))
+            var valueType = value.GetType();
+            if (type.IsAssignableFrom(valueType))
                 return value;
 
             if (type.IsEnum)
@@ -80,6 +100,27 @@ namespace MessagePack
                 {
                     throw new MessagePackSerializationException(type, e);
                 }
+            }
+
+            // The .NET ibrary does not support implicit casts but this can be a useful feature and so it's available as an option in this interpretation of the library (there are some gotchas to be aware of, though - for example,
+            // if you have a type that has an implicit operator from an int and a small numeric value is deserialised then the library will represent it as a smaller data type (such as a byte if it's in the range 0-127) and so the
+            // implicit operator from int will not be applicable. This may be one reason that the .NET library doesn't support it (as standard? I couldn't find any documentation on whether it could be enabled somehow). For types
+            // that will can be represented by smaller types (for the sake of smaller messages), such as strings, this is not an issue.
+            if (_options.EnableImplicitCasts)
+            {
+                const string implicitOperatorMethodName = "op_Implicit";
+
+                // TODO: Cache these lookups? Would there be any genuine performance boost in the h5 context vs the cost of reflection in .NET?
+
+                // An implicit operator has to either go from or to the type that declares it, so we don't need to check the return type on one that we've identified on the target type where the operator takes the source type
+                var implicitOperatorOnTargetType = type.GetMethod(implicitOperatorMethodName, BindingFlags.Public | BindingFlags.Static, new[] { valueType });
+                if (implicitOperatorOnTargetType is object)
+                    return implicitOperatorOnTargetType.Invoke(null, value);
+
+                // When looking for an implicit operator on the source type, we need its return type (if that's the type that we want then its argument must be its own type)
+                var implicitOperatorOnSourceType = valueType.GetMethods(BindingFlags.Public | BindingFlags.Static).FirstOrDefault(m => (m.Name == implicitOperatorMethodName) && (m.ReturnType == type));
+                if (implicitOperatorOnSourceType is object)
+                    return implicitOperatorOnSourceType.Invoke(null, value);
             }
 
             throw new MessagePackSerializationException(type);
@@ -347,7 +388,7 @@ namespace MessagePack
 
         private DecodeResult DecodeExt(IBuffer buf, uint offset, sbyte typeCode, uint size, uint headerLength, Type expectedType)
         {
-            var decoder = _customDecoderIfAny.TryToGetDecoder(typeCode);
+            var decoder = _options.CustomDecoderIfAny?.TryToGetDecoder(typeCode);
             if (decoder is null)
                 throw new InvalidOperationException("Unable to find ext type " + typeCode);
 

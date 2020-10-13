@@ -27,5 +27,13 @@ namespace MessagePack
             }
             return null;
         }
+
+        public CombinedDecoder Add(ICustomDecoder decoder)
+        {
+            if (decoder is null)
+                throw new ArgumentNullException(nameof(decoder));
+
+            return new CombinedDecoder(_decoders.Concat(new[] { decoder }));
+        }
     }
 }
